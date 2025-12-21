@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Printer, ArrowLeft } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const Dashboard = () => {
   const location = useLocation();
@@ -146,6 +147,30 @@ const Dashboard = () => {
                             </Card>
                          </div>
                     </div>
+
+                    {/* Detailed Framework Analysis */}
+                    <div className="mt-8">
+                        <h3 className="text-2xl font-serif font-bold text-slate-900 mb-6">Detailed Framework Analysis</h3>
+                        <Accordion type="single" collapsible className="w-full bg-white rounded-lg border shadow-sm px-6">
+                            {brand.dimensions.map((dim, i) => (
+                                <AccordionItem key={i} value={`item-${i}`} className="border-b-slate-100 last:border-0">
+                                    <AccordionTrigger className="hover:no-underline py-4">
+                                        <div className="flex justify-between w-full items-center pr-4">
+                                            <span className="font-serif font-medium text-lg">{dim.name}</span>
+                                            <div className="flex items-center space-x-2">
+                                                <span className="text-sm text-slate-400 uppercase tracking-widest text-xs">Score</span>
+                                                <span className="font-bold text-primary">{dim.score}/10</span>
+                                            </div>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="text-slate-600 leading-relaxed pb-6">
+                                        {dim.reasoning}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    </div>
+
                 </div>
             ))}
         </div>
