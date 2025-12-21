@@ -10,6 +10,7 @@ from typing import List
 import uuid
 from datetime import datetime, timezone
 import json
+import whois  # Import python-whois
 
 # Import custom modules
 from schemas import BrandEvaluationRequest, BrandEvaluationResponse, StatusCheck, StatusCheckCreate
@@ -49,6 +50,28 @@ app = FastAPI()
 # Router
 api_router = APIRouter(prefix="/api")
 
+def check_domain_availability(brand_name: str) -> str:
+    """
+    Checks if {brand_name}.com is available using whois.
+    Returns a string status message.
+    """
+    domain = f"{brand_name.lower().replace(' ', '')}.com"
+    try:
+        w = whois.whois(domain)
+        # If we get a valid object with domain_name or creation_date, it's taken
+        if w.domain_name or w.creation_date:
+            return f"{domain}: TAKEN (Registered). Use this FACT. Do not say it might be available."
+        else:
+            # Fallback if library returns empty object but no error (rare)
+            return f"{domain}: LIKELY AVAILABLE (No whois record found)."
+    except Exception as e:
+        # Most "not found" results raise an exception with "No match for..."
+        error_str = str(e).lower()
+        if "no match for" in error_str or "not found" in error_str:
+            return f"{domain}: AVAILABLE (No whois record found). Use this FACT."
+        else:
+            return f"{domain}: CHECK FAILED (Error: {str(e)}). Assume TAKEN to be safe."
+
 @api_router.get("/")
 async def root():
     return {"message": "RightName API is running"}
@@ -58,7 +81,15 @@ async def evaluate_brands(request: BrandEvaluationRequest):
     if not llm_chat:
         raise HTTPException(status_code=500, detail="LLM Integration not initialized")
     
-    # Construct User Message
+    # Check domains for all brands
+    domain_statuses = []
+    for brand in request.brand_names:
+        status = check_domain_availability(brand)
+        domain_statuses.append(f"- {brand}: {status}")
+    
+    domain_context = "\n".join(domain_statuses)
+    
+    # Construct User Message with REAL Domain Data
     user_prompt = f"""
     Evaluate the following brands:
     Brands: {request.brand_names}
@@ -66,6 +97,12 @@ async def evaluate_brands(request: BrandEvaluationRequest):
     Positioning: {request.positioning}
     Market Scope: {request.market_scope}
     Target Countries: {request.countries}
+
+    REAL-TIME DOMAIN AVAILABILITY DATA (DO NOT HALLUCINATE):
+    {domain_context}
+    
+    INSTRUCTION: In the 'domain_analysis' section, strictly use the availability data provided above. 
+    If taken, say "Taken". If available, say "Available".
     """
     
     try:
