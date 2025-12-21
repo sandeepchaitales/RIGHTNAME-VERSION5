@@ -7,8 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, ShieldCheck, Globe2, BrainCircuit, Search, ArrowRight, Zap } from "lucide-react";
+import { Loader2, Sparkles, ShieldCheck, Globe2, BrainCircuit, Search, ArrowRight, Zap, Check, ChevronsUpDown, X } from "lucide-react";
 import { toast } from "sonner";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+const POPULAR_COUNTRIES = [
+  "United States", "United Kingdom", "India", "Canada", "Australia", 
+  "Germany", "France", "Japan", "China", "UAE", 
+  "Saudi Arabia", "Singapore", "Brazil", "South Korea", "Italy", 
+  "Spain", "Netherlands", "Switzerland", "Sweden", "Mexico"
+];
 
 const FeatureCard = ({ icon: Icon, title, description, color }) => (
   <div className={`p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-4px] group`}>
@@ -23,12 +33,13 @@ const FeatureCard = ({ icon: Icon, title, description, color }) => (
 const LandingPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [openCombobox, setOpenCombobox] = useState(false);
   const [formData, setFormData] = useState({
     brand_names: '',
     category: '',
     positioning: 'Premium',
     market_scope: 'Multi-Country',
-    countries: ''
+    countries: []
   });
 
   const handleChange = (e) => {
@@ -39,16 +50,40 @@ const LandingPage = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const toggleCountry = (country) => {
+    setFormData(prev => {
+      const current = prev.countries;
+      const isSelected = current.includes(country);
+      if (isSelected) {
+        return { ...prev, countries: current.filter(c => c !== country) };
+      } else {
+        return { ...prev, countries: [...current, country] };
+      }
+    });
+  };
+
+  const removeCountry = (country) => {
+    setFormData(prev => ({
+      ...prev,
+      countries: prev.countries.filter(c => c !== country)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const brands = formData.brand_names.split(',').map(s => s.trim()).filter(Boolean);
-      const countries = formData.countries.split(',').map(s => s.trim()).filter(Boolean);
+      
+      if (brands.length === 0) {
+        toast.error("Please enter at least one brand name.");
+        setLoading(false);
+        return;
+      }
 
-      if (brands.length === 0 || countries.length === 0) {
-        toast.error("Please enter at least one brand and one country.");
+      if (formData.countries.length === 0) {
+        toast.error("Please select at least one target country.");
         setLoading(false);
         return;
       }
@@ -58,12 +93,13 @@ const LandingPage = () => {
         category: formData.category,
         positioning: formData.positioning,
         market_scope: formData.market_scope,
-        countries: countries
+        countries: formData.countries
       };
 
       const result = await api.evaluate(payload);
       navigate('/dashboard', { state: { data: result, query: payload } });
     } catch (error) {
+      console.error(error);
       toast.error("Evaluation failed. Please try again.");
     } finally {
       setLoading(false);
@@ -202,21 +238,85 @@ const LandingPage = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Target Markets</Label>
-                                <Input 
-                                    name="countries"
-                                    value={formData.countries}
-                                    onChange={handleChange}
-                                    placeholder="e.g. USA, Japan, India"
-                                    className="h-11 bg-white border-slate-200 rounded-xl font-medium"
-                                    required
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Market Scope</Label>
+                                    <Select onValueChange={(val) => handleSelectChange('market_scope', val)} defaultValue={formData.market_scope}>
+                                        <SelectTrigger className="h-11 bg-white border-slate-200 rounded-xl font-medium">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Single Country">Single Country</SelectItem>
+                                            <SelectItem value="Multi-Country">Multi-Country</SelectItem>
+                                            <SelectItem value="Global">Global</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Select Countries</Label>
+                                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          role="combobox"
+                                          aria-expanded={openCombobox}
+                                          className="w-full h-11 justify-between bg-white border-slate-200 rounded-xl font-medium text-slate-600 hover:bg-slate-50"
+                                        >
+                                          {formData.countries.length > 0
+                                            ? `${formData.countries.length} selected`
+                                            : "Select markets..."}
+                                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-[250px] p-0 rounded-xl shadow-xl border-slate-100">
+                                        <Command>
+                                          <CommandInput placeholder="Search country..." className="font-medium" />
+                                          <CommandList>
+                                            <CommandEmpty>No country found.</CommandEmpty>
+                                            <CommandGroup>
+                                              {POPULAR_COUNTRIES.map((country) => (
+                                                <CommandItem
+                                                  key={country}
+                                                  value={country}
+                                                  onSelect={() => toggleCountry(country)}
+                                                  className="cursor-pointer font-medium"
+                                                >
+                                                  <Check
+                                                    className={cn(
+                                                      "mr-2 h-4 w-4 text-violet-600",
+                                                      formData.countries.includes(country) ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                  />
+                                                  {country}
+                                                </CommandItem>
+                                              ))}
+                                            </CommandGroup>
+                                          </CommandList>
+                                        </Command>
+                                      </PopoverContent>
+                                    </Popover>
+                                </div>
                             </div>
+
+                            {/* Selected Countries Tags */}
+                            {formData.countries.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.countries.map(country => (
+                                        <Badge key={country} variant="secondary" className="bg-violet-50 text-violet-700 hover:bg-violet-100 border-0 px-3 py-1 text-xs flex items-center gap-1">
+                                            {country}
+                                            <X 
+                                                className="w-3 h-3 cursor-pointer hover:text-violet-900" 
+                                                onClick={() => removeCountry(country)}
+                                            />
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
 
                             <Button 
                                 type="submit" 
-                                className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg rounded-xl shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg rounded-xl shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98] mt-4"
                                 disabled={loading}
                             >
                                 {loading ? (
