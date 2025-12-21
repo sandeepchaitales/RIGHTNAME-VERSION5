@@ -8,11 +8,24 @@ class DimensionScore(BaseModel):
     score: float
     reasoning: str
 
-class TrademarkRisk(BaseModel):
-    risk_level: Literal["Low", "Medium", "High", "Critical"]
-    score: float
-    summary: str
-    details: List[Dict[str, str]]
+class TrademarkRiskRow(BaseModel):
+    likelihood: int
+    severity: int
+    zone: Literal["Green", "Yellow", "Red"]
+    commentary: str
+
+class TrademarkRiskMatrix(BaseModel):
+    genericness: TrademarkRiskRow
+    existing_conflicts: TrademarkRiskRow
+    phonetic_similarity: TrademarkRiskRow
+    relevant_classes: TrademarkRiskRow
+    rebranding_probability: TrademarkRiskRow
+    overall_assessment: str
+
+class DomainAnalysis(BaseModel):
+    exact_match_status: str
+    alternatives: List[Dict[str, str]]  # e.g., {"domain": "getbrand.com", "example": "Used by ..."}
+    strategy_note: str
 
 class CountryAnalysis(BaseModel):
     country: str
@@ -40,7 +53,11 @@ class BrandScore(BaseModel):
     pros: List[str]
     cons: List[str]
     dimensions: List[DimensionScore]
-    trademark_risk: TrademarkRisk
+    # Keep old trademark_risk for backward compat if needed, or just use the new matrix. 
+    # The prompt implies adding a NEW column/section. I will keep the simple risk for summary card, and add matrix for detailed view.
+    trademark_risk: dict # Simplified for summary
+    trademark_matrix: TrademarkRiskMatrix # NEW
+    domain_analysis: DomainAnalysis # NEW
     cultural_analysis: List[CountryAnalysis]
     competitor_analysis: Optional[CompetitorAnalysis] = None
     positioning_fit: str

@@ -15,17 +15,6 @@ analysis_frameworks:
   - Trademark & Legal Sensitivity (Per Country - PROBABILISTIC ONLY)
   - Consumer Perception Mapping (Local vs Global)
 
-scoring_rules:
-  dimension_scale: 0-10
-  composite_index_scale: 0-100
-  weightage:
-    Distinctiveness: 18
-    Cultural_Resonance: 17
-    Premiumisation_Trust: 18
-    Scalability: 17
-    Trademark_Risk: 20
-    Consumer_Perception: 10
-
 namescore_index:
   interpretation:
     85-100: Category-defining (Strong GO)
@@ -43,74 +32,6 @@ trademark_probability_model:
   description: Non-legal probabilistic trademark conflict model.
   consolidation_logic: Highest-risk country defines global risk.
 
-FORMATTING REQUIREMENTS FOR 'reasoning' FIELDS:
-For each dimension, the 'reasoning' string MUST strictly follow the specific structure below. Use line breaks (\\n) to separate sections. Make it detailed and elaborate.
-
-1. Brand Distinctiveness & Memorability:
-   Strengths:
-   - Phonetic clarity: X/10 (Details)
-   - Spelling memorability: X/10 (Details)
-   - Distinctiveness ratio: X/10 (Details)
-   Weaknesses:
-   - Domain availability: X/10 (Details)
-   - Other issues...
-   Verdict: Summary.
-
-2. Cultural & Linguistic Resonance:
-   [Target Market 1] Market (Score/10):
-   - Cultural associations...
-   - Heritage signal...
-   - Tier-1 vs Tier-2 analysis...
-   [Target Market 2 / Global] Market (Score/10):
-   - International resonance...
-   - Negative meaning check...
-   Net Assessment: Summary of appeal across markets.
-
-3. Premiumisation & Trust Curve:
-   Trust Building Factors:
-   - Founder heritage signal: [WEAK/STRONG/ABSENT] (Score)
-   - Science/methodology signal: (Score)
-   - Authenticity/tradition signal: (Score)
-   - Simplicity & confidence: (Score)
-   Premium Support Potential:
-   - Can support mid-premium pricing? [YES/NO]
-   - Can support ultra-luxury? [YES/UNLIKELY]
-   - Price premium potential: X%
-   Critical Issue: Any trust barriers?
-   Mitigation: How to fix it.
-
-4. Scalability & Brand Architecture:
-   Sub-Brand Extension Test:
-   ✅ [Brand] Category A (Score/10)
-   ✅ [Brand] Category B (Score/10)
-   ~ [Brand] Category C (Score/10)
-   Verdict: Summary of extensibility.
-   Timeline Resilience: Will it feel dated?
-
-5. Trademark & Legal Sensitivity:
-   Registrability:
-   - Country A: [HIGH/MED/LOW] - % Prob
-   - Country B: [HIGH/MED/LOW] - % Prob
-   Conflict Risk:
-   - Exact matches: [ZERO/SOME]
-   - Phonetic conflicts: [ZERO/SOME]
-   Negative Association Check:
-   - Language A: Meaning
-   - Language B: Meaning
-   Verdict: Summary of legal risk.
-
-6. Consumer Perception Mapping:
-   Positioning Reality:
-   [Attribute] | Current | Target | Gap
-   Authenticity | [Val] | [Val] | [HIGH/LOW]
-   Trust | [Val] | [Val] | [HIGH/LOW]
-   Perceived vs. Actual:
-   - Consumers perceive: ...
-   - Category expects: ...
-   Perception Testing Expectations:
-   - Metric A: % (PASS/FAIL)
-   - Metric B: % (PASS/FAIL)
-
 Output JSON Structure:
 {
   "executive_summary": "High-level strategic overview of the brands in the context of the markets.",
@@ -121,37 +42,46 @@ Output JSON Structure:
       "verdict": "GO",
       "summary": "Short verdict summary.",
       "strategic_classification": "e.g., FUEL is a DIFFERENTIATION BRAND, not a LEADERSHIP BRAND.",
-      "pros": [
-        "Modern, aspirational positioning",
-        "Global expansion potential"
-      ],
-      "cons": [
-        "Sacrifices heritage authenticity",
-        "Trademark defensibility issues"
-      ],
+      "pros": ["Modern positioning", "Global potential"],
+      "cons": ["Sacrifices authenticity", "Legal risk"],
       "competitor_analysis": {
           "competitors": [
-              {"name": "Patanjali", "positioning": "Tradition + Affordable + Established", "price_range": "₹100-300"},
-              {"name": "Forest Essentials", "positioning": "Tradition + Premium + Established", "price_range": "₹500-1500"}
+              {"name": "Competitor 1", "positioning": "...", "price_range": "..."}
           ],
-          "white_space_analysis": "Deepstory: Modern + Mid-Premium + Emerging (₹300-800, digital-native) ← UNIQUE",
-          "strategic_advantage": "You're the only major Ayurvedic brand positioning as 'modern' rather than 'traditional.' Own that white space completely or lose to heritage competitors.",
-          "suggested_pricing": "Suggested Price: ₹X - ₹Y"
+          "white_space_analysis": "...",
+          "strategic_advantage": "...",
+          "suggested_pricing": "..."
       },
       "positioning_fit": "Analysis of fit with Mass/Premium/Ultra.",
       "dimensions": [
-        {"name": "Brand Distinctiveness & Memorability", "score": 9.0, "reasoning": "Strengths:\\n- Phonetic clarity: 7/10..."},
-        {"name": "Cultural & Linguistic Resonance", "score": 8.5, "reasoning": "Indian Market (5.5/10):\\n- Weak Sanskrit connection..."},
-        {"name": "Premiumisation & Trust Curve", "score": 8.0, "reasoning": "Trust Building Factors:\\n..."},
-        {"name": "Scalability & Brand Architecture", "score": 9.0, "reasoning": "Sub-Brand Extension Test:\\n..."},
-        {"name": "Trademark & Legal Sensitivity", "score": 7.0, "reasoning": "Registrability:\\n..."},
-        {"name": "Consumer Perception Mapping", "score": 8.0, "reasoning": "Positioning Reality:\\n..."}
+        {"name": "Brand Distinctiveness & Memorability", "score": 9.0, "reasoning": "Strengths:\\n..."},
+        {"name": "Cultural & Linguistic Resonance", "score": 8.5, "reasoning": "..."},
+        {"name": "Premiumisation & Trust Curve", "score": 8.0, "reasoning": "..."},
+        {"name": "Scalability & Brand Architecture", "score": 9.0, "reasoning": "..."},
+        {"name": "Trademark & Legal Sensitivity", "score": 7.0, "reasoning": "..."},
+        {"name": "Consumer Perception Mapping", "score": 8.0, "reasoning": "..."}
       ],
       "trademark_risk": {
         "risk_level": "Low/Medium/High/Critical",
         "score": 8.0, 
         "summary": "Global risk summary.",
         "details": [{"country": "USA", "risk": "Low", "notes": "..."}]
+      },
+      "trademark_matrix": {
+          "genericness": {"likelihood": 2, "severity": 8, "zone": "Green", "commentary": "Detailed commentary..."},
+          "existing_conflicts": {"likelihood": 4, "severity": 9, "zone": "Yellow", "commentary": "..."},
+          "phonetic_similarity": {"likelihood": 3, "severity": 7, "zone": "Green", "commentary": "..."},
+          "relevant_classes": {"likelihood": 5, "severity": 5, "zone": "Yellow", "commentary": "..."},
+          "rebranding_probability": {"likelihood": 1, "severity": 10, "zone": "Green", "commentary": "..."},
+          "overall_assessment": "EXPLANATION OF Overall Legal Risk assessment + recommended actions."
+      },
+      "domain_analysis": {
+          "exact_match_status": "Assessment of [brand].com availability (e.g., Likely Taken / Premium).",
+          "alternatives": [
+              {"domain": "try[Brand].com", "example": "Used by X"},
+              {"domain": "get[Brand].com", "example": "Used by Y"}
+          ],
+          "strategy_note": "Strategic advice on domain acquisition..."
       },
       "cultural_analysis": [
         {
