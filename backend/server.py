@@ -39,11 +39,12 @@ if not EMERGENT_KEY:
 
 llm_chat = None
 if LlmChat and EMERGENT_KEY:
+    # Switched to gpt-4o for better stability/budget handling
     llm_chat = LlmChat(
         api_key=EMERGENT_KEY,
         session_id="rightname_session",
         system_message=SYSTEM_PROMPT
-    ).with_model("anthropic", "claude-4-sonnet-20250514")
+    ).with_model("openai", "gpt-4o")
 
 # Create the main app
 app = FastAPI()
@@ -76,7 +77,7 @@ async def root():
 @api_router.post("/evaluate", response_model=BrandEvaluationResponse)
 async def evaluate_brands(request: BrandEvaluationRequest):
     if not llm_chat:
-        raise HTTPException(status_code=500, detail="LLM Integration not initialized")
+        raise HTTPException(status_code=500, detail="LLM Integration not initialized (Check EMERGENT_LLM_KEY)")
     
     # 1. Check Domains
     domain_statuses = []
@@ -152,8 +153,18 @@ async def evaluate_brands(request: BrandEvaluationRequest):
         return evaluation
         
     except Exception as e:
-        logging.error(f"Error in LLM evaluation: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        error_msg = str(e)
+        logging.error(f"Error in LLM evaluation: {error_msg}")
+        
+        # Friendly error mapping
+        if "Budget has been exceeded" in error_msg:
+            detail_msg = "LLM Budget Exceeded. Please top up your Emergent Key."
+        elif "502" in error_msg or "BadGateway" in error_msg:
+            detail_msg = "AI Provider Overloaded (502). Please try again in a few seconds."
+        else:
+            detail_msg = f"Analysis failed: {error_msg}"
+            
+        raise HTTPException(status_code=500, detail=detail_msg)
 
 # Status Routes
 @api_router.post("/status", response_model=StatusCheck)
