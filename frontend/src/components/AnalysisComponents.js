@@ -2,103 +2,137 @@ import React from 'react';
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Lightbulb, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Lightbulb, AlertTriangle, ArrowUpRight, Minus, TrendingUp } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-// Custom Tick Component for Radar Chart
+// --- Design System Tokens ---
+// These classes represent our "Premium SaaS" aesthetic
+const CARD_STYLE = "bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden";
+const SECTION_HEADER_STYLE = "text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2 mb-4";
+const SUBTLE_BADGE = "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium px-2.5 py-0.5 rounded-md text-xs";
+
+// --- Sub-Components ---
+
 const CustomTick = ({ payload, x, y, cx, cy, ...rest }) => {
   return (
     <text
       {...rest}
-      y={y + (y - cy) / 10}
-      x={x + (x - cx) / 10}
+      y={y + (y - cy) / 16}
+      x={x + (x - cx) / 16}
       fontFamily="Outfit, sans-serif"
-      fontSize={11}
+      fontSize={10}
       fontWeight={600}
       textAnchor="middle"
-      fill="#475569"
+      fill="#64748b"
+      className="uppercase tracking-wider"
     >
-      <tspan x={x + (x - cx) / 10} dy="0em">{payload.value}</tspan>
+      <tspan x={x + (x - cx) / 16} dy="0em">{payload.value}</tspan>
     </text>
   );
 };
 
 export const BrandRadarChart = ({ data }) => {
-  // Enhance data with full score mark if needed, but we'll use Tooltip/Labels
   return (
-    <div className="h-[400px] w-full min-w-[300px]">
+    <div className="h-[400px] w-full min-w-[300px] relative">
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
-          <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+          <PolarGrid stroke="#e2e8f0" strokeDasharray="4 4" />
           <PolarAngleAxis 
             dataKey="name" 
             tick={(props) => <CustomTick {...props} />}
           />
           <PolarRadiusAxis 
-            angle={30} 
+            angle={90} 
             domain={[0, 10]} 
-            tickCount={6} 
-            tick={{ fill: '#94a3b8', fontSize: 10 }}
-            axisLine={false}
+            tick={false} 
+            axisLine={false} 
           />
           <Radar
             name="Score"
             dataKey="score"
-            stroke="#8b5cf6"
+            stroke="#7c3aed"
             strokeWidth={3}
-            fill="#a78bfa"
-            fillOpacity={0.4}
-            label={{ position: 'top', fill: '#7c3aed', fontSize: 12, fontWeight: 'bold' }} // Show score on points
+            fill="#8b5cf6"
+            fillOpacity={0.2}
+            isAnimationActive={true}
           />
           <Tooltip 
-            formatter={(value) => [`${value}/10`, 'Score']}
-            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+            formatter={(value) => [<span className="font-bold text-violet-700">{value}/10</span>, 'Score']}
+            contentStyle={{ 
+                borderRadius: '12px', 
+                border: '1px solid #e2e8f0', 
+                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                fontFamily: 'Outfit, sans-serif',
+                fontSize: '12px'
+            }}
+            itemStyle={{ color: '#1e293b' }}
           />
         </RadarChart>
       </ResponsiveContainer>
+      <div className="absolute bottom-2 right-2 text-[10px] text-slate-400 font-medium">
+        * 6-Point Proprietary Analysis
+      </div>
     </div>
   );
 };
 
 export const ScoreCard = ({ title, score, verdict, subtitle, className }) => {
     let colorClass = "text-slate-900";
-    let badgeClass = "bg-slate-100 text-slate-700";
+    let bgGradient = "from-slate-50 to-white";
+    let statusIcon = <Minus className="w-4 h-4 text-slate-400" />;
     
     if (verdict === "GO") {
         colorClass = "text-emerald-600";
-        badgeClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
-    }
-    if (verdict === "CONDITIONAL GO") {
+        bgGradient = "from-emerald-50/50 to-white";
+        statusIcon = <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
+    } else if (verdict === "CONDITIONAL GO") {
         colorClass = "text-amber-600";
-        badgeClass = "bg-amber-100 text-amber-700 border-amber-200";
-    }
-    if (verdict === "NO-GO" || verdict === "REJECT") {
+        bgGradient = "from-amber-50/50 to-white";
+        statusIcon = <AlertTriangle className="w-5 h-5 text-amber-500" />;
+    } else if (verdict === "NO-GO" || verdict === "REJECT") {
         colorClass = "text-rose-600";
-        badgeClass = "bg-rose-100 text-rose-700 border-rose-200";
+        bgGradient = "from-rose-50/50 to-white";
+        statusIcon = <ArrowUpRight className="w-5 h-5 text-rose-500 rotate-180" />;
     }
 
     return (
-        <Card className={`playful-card border-l-4 border-l-violet-500 h-full overflow-hidden ${className}`}>
-            <CardHeader className="pb-2 bg-gradient-to-r from-violet-50 to-white">
-                <CardTitle className="text-xs font-bold uppercase tracking-widest text-violet-400">
-                    {title}
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 flex flex-col items-center justify-center text-center">
-                <div className="flex items-baseline space-x-2">
-                    <span className={`text-6xl font-extrabold ${colorClass}`}>{score}</span>
-                    <span className="text-sm text-slate-400 font-bold">/100</span>
-                </div>
-                {verdict && (
-                    <div className="mt-4">
-                        <Badge variant="outline" className={`px-4 py-1.5 text-base font-bold border-2 ${badgeClass}`}>
-                            {verdict}
-                        </Badge>
+        <Card className={`${CARD_STYLE} ${className} border-l-4 ${verdict === 'GO' ? 'border-l-emerald-500' : verdict === 'CONDITIONAL GO' ? 'border-l-amber-500' : 'border-l-rose-500'}`}>
+            <CardHeader className={`pb-2 bg-gradient-to-br ${bgGradient} border-b border-slate-50`}>
+                <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                        <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                            {title}
+                        </CardTitle>
+                        <CardDescription className="text-[10px] font-medium text-slate-400">
+                            {subtitle}
+                        </CardDescription>
                     </div>
-                )}
-                {subtitle && <p className="mt-3 text-xs text-slate-400 font-medium">{subtitle}</p>}
+                    {statusIcon}
+                </div>
+            </CardHeader>
+            <CardContent className="pt-6 pb-6">
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="relative">
+                        <span className={`text-7xl font-black tracking-tighter ${colorClass}`}>
+                            {score}
+                        </span>
+                        <span className="absolute top-2 -right-6 text-sm text-slate-400 font-bold">/100</span>
+                    </div>
+                    {verdict && (
+                        <div className="mt-4">
+                            <Badge className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wide border-0 shadow-sm ${
+                                verdict === 'GO' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' :
+                                verdict === 'CONDITIONAL GO' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
+                                'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                            }`}>
+                                {verdict}
+                            </Badge>
+                        </div>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
@@ -106,53 +140,63 @@ export const ScoreCard = ({ title, score, verdict, subtitle, className }) => {
 
 export const CompetitionAnalysis = ({ data }) => {
     return (
-        <Card className="playful-card border-0 shadow-none ring-1 ring-slate-100 overflow-hidden w-full">
-            <CardHeader className="bg-slate-900 text-white p-6">
-                <CardTitle className="text-xl font-bold flex items-center">
-                    <span className="mr-2">⚔️</span> Competitive Landscape
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-                <div className="p-8 bg-gradient-to-br from-violet-50 to-white border-b border-slate-100">
-                     <h4 className="text-xs font-black uppercase tracking-widest text-violet-500 mb-3">✨ Competitive White Space</h4>
-                     <p className="text-slate-800 font-medium text-lg leading-relaxed">{data.white_space_analysis}</p>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: White Space & Strategy */}
+            <Card className={`${CARD_STYLE} lg:col-span-1 flex flex-col`}>
+                <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-violet-600 flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4" /> Opportunity
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 flex-grow space-y-6">
+                    <div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">White Space Analysis</h4>
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                            {data.white_space_analysis}
+                        </p>
+                    </div>
+                    <div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Strategic Advantage</h4>
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                            {data.strategic_advantage}
+                        </p>
+                    </div>
+                    <div className="pt-4 border-t border-slate-100">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-1">Recommended Pricing</h4>
+                        <div className="text-2xl font-bold text-slate-900">{data.suggested_pricing}</div>
+                    </div>
+                </CardContent>
+            </Card>
 
-                <div className="p-0 overflow-x-auto">
-                    <Table className="min-w-[600px]">
+            {/* Right: Competitor Table */}
+            <Card className={`${CARD_STYLE} lg:col-span-2`}>
+                <CardHeader className="bg-white border-b border-slate-100 pb-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                        Market Landscape
+                    </CardTitle>
+                </CardHeader>
+                <div className="overflow-x-auto">
+                    <Table>
                         <TableHeader>
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead className="w-[200px] font-bold text-slate-900 pl-8 py-4">Competitor</TableHead>
-                                <TableHead className="font-bold text-slate-900">Positioning</TableHead>
-                                <TableHead className="text-right font-bold text-slate-900 pr-8">Price Range</TableHead>
+                            <TableRow className="bg-slate-50/50 hover:bg-slate-50">
+                                <TableHead className="w-[30%] font-bold text-slate-700">Competitor</TableHead>
+                                <TableHead className="w-[45%] font-bold text-slate-700">Positioning</TableHead>
+                                <TableHead className="w-[25%] text-right font-bold text-slate-700">Price Range</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {data.competitors && data.competitors.map((comp, idx) => (
-                                <TableRow key={idx} className="hover:bg-slate-50/50 border-slate-100">
-                                    <TableCell className="font-bold text-slate-700 pl-8 py-4">{comp.name}</TableCell>
-                                    <TableCell className="text-slate-600">{comp.positioning}</TableCell>
-                                    <TableCell className="text-right font-mono text-violet-600 font-bold pr-8">{comp.price_range}</TableCell>
+                                <TableRow key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                    <TableCell className="font-bold text-slate-900">{comp.name}</TableCell>
+                                    <TableCell className="text-slate-600 text-sm">{comp.positioning}</TableCell>
+                                    <TableCell className="text-right font-mono text-slate-500 text-sm">{comp.price_range}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2">
-                     <div className="p-8 bg-emerald-50/30 border-t md:border-r border-slate-100">
-                        <h4 className="text-xs font-black uppercase tracking-widest text-emerald-600 mb-2">🚀 Strategic Advantage</h4>
-                        <p className="text-sm text-slate-700 font-medium">{data.strategic_advantage}</p>
-                     </div>
-                     <div className="p-8 bg-white flex flex-col items-center justify-center border-t border-slate-100">
-                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Suggested Pricing</h4>
-                        <span className="text-3xl font-extrabold text-slate-900 bg-slate-100 px-4 py-2 rounded-xl text-center">
-                            {data.suggested_pricing}
-                        </span>
-                     </div>
-                </div>
-            </CardContent>
-        </Card>
+            </Card>
+        </div>
     );
 };
 
@@ -160,57 +204,67 @@ export const TrademarkRiskTable = ({ matrix }) => {
     if (!matrix) return null;
 
     const rows = [
-        { label: "Genericness / Descriptiveness", ...matrix.genericness },
-        { label: "Existing Conflicts", ...matrix.existing_conflicts },
-        { label: "Phonetic Similarity", ...matrix.phonetic_similarity },
-        { label: "Relevant Trademark Classes", ...matrix.relevant_classes },
-        { label: "Rebranding Probability (3-5y)", ...matrix.rebranding_probability },
+        { label: "Genericness", ...matrix.genericness },
+        { label: "Conflicts", ...matrix.existing_conflicts },
+        { label: "Phonetic", ...matrix.phonetic_similarity },
+        { label: "Classes", ...matrix.relevant_classes },
+        { label: "Rebranding", ...matrix.rebranding_probability },
     ];
 
     const getZoneBadge = (zone) => {
-        if (zone === "Green") return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-0 px-3 py-1 whitespace-nowrap">Safe</Badge>;
-        if (zone === "Yellow") return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-0 px-3 py-1 whitespace-nowrap">Caution</Badge>;
-        if (zone === "Red") return <Badge className="bg-rose-100 text-rose-800 hover:bg-rose-200 border-0 px-3 py-1 whitespace-nowrap">High Risk</Badge>;
-        return zone;
+        if (zone === "Green") return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">LOW</span>;
+        if (zone === "Yellow") return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">MED</span>;
+        return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">HIGH</span>;
     };
 
     return (
-        <Card className="playful-card overflow-hidden w-full">
-            <CardHeader className="bg-slate-900 text-white p-6">
-                 <CardTitle className="text-xl font-bold flex items-center">
-                    <span className="mr-2">⚖️</span> Trademark Risk Matrix
-                 </CardTitle>
+        <Card className={CARD_STYLE}>
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+                 <div className="flex justify-between items-center">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                        Risk Matrix
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-white text-slate-600">IP Analysis</Badge>
+                 </div>
             </CardHeader>
-            <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                    <Table className="min-w-[800px]">
-                        <TableHeader>
-                            <TableRow className="bg-slate-50 hover:bg-slate-50 border-slate-100">
-                                <TableHead className="w-[200px] font-bold text-slate-900 pl-6">Risk Factor</TableHead>
-                                <TableHead className="text-center font-bold text-slate-900 w-[100px]">Likelihood</TableHead>
-                                <TableHead className="text-center font-bold text-slate-900 w-[100px]">Severity</TableHead>
-                                <TableHead className="text-center font-bold text-slate-900 w-[100px]">Zone</TableHead>
-                                <TableHead className="font-bold text-slate-900 min-w-[300px]">Commentary & Mitigation</TableHead>
+            <div className="overflow-x-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="hover:bg-transparent border-b border-slate-100">
+                            <TableHead className="w-[20%] font-bold text-slate-700 pl-6">Factor</TableHead>
+                            <TableHead className="w-[10%] text-center font-bold text-slate-700">Prob.</TableHead>
+                            <TableHead className="w-[10%] text-center font-bold text-slate-700">Sev.</TableHead>
+                            <TableHead className="w-[10%] text-center font-bold text-slate-700">Risk</TableHead>
+                            <TableHead className="w-[50%] font-bold text-slate-700">Mitigation Strategy</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {rows.map((row, idx) => (
+                            <TableRow key={idx} className="hover:bg-slate-50/30">
+                                <TableCell className="font-bold text-slate-900 pl-6 text-sm">{row.label}</TableCell>
+                                <TableCell className="text-center">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-xs font-bold text-slate-700">{row.likelihood}</span>
+                                        <Progress value={row.likelihood * 10} className="h-1 w-12" />
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-xs font-bold text-slate-700">{row.severity}</span>
+                                        <Progress value={row.severity * 10} className="h-1 w-12" color={row.severity > 7 ? 'bg-rose-500' : 'bg-slate-900'} />
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-center">{getZoneBadge(row.zone)}</TableCell>
+                                <TableCell className="text-xs text-slate-600 leading-relaxed py-4">{row.commentary}</TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {rows.map((row, idx) => (
-                                <TableRow key={idx} className="border-slate-100 hover:bg-slate-50/50">
-                                    <TableCell className="font-bold text-slate-700 pl-6 py-4">{row.label}</TableCell>
-                                    <TableCell className="text-center font-mono text-slate-500">{row.likelihood}/10</TableCell>
-                                    <TableCell className="text-center font-mono text-slate-500">{row.severity}/10</TableCell>
-                                    <TableCell className="text-center">{getZoneBadge(row.zone)}</TableCell>
-                                    <TableCell className="text-sm text-slate-600 leading-relaxed font-medium">{row.commentary}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
-                <div className="p-8 bg-amber-50/50 border-t border-slate-100">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-amber-600 mb-2">⚠️ Overall Legal Assessment</h4>
-                    <p className="text-sm text-slate-800 leading-relaxed font-medium">{matrix.overall_assessment}</p>
-                </div>
-            </CardContent>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+            <div className="p-6 bg-slate-50 border-t border-slate-100">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Assessment Summary</h4>
+                <p className="text-sm text-slate-800 leading-relaxed">{matrix.overall_assessment}</p>
+            </div>
         </Card>
     );
 };
@@ -218,35 +272,39 @@ export const TrademarkRiskTable = ({ matrix }) => {
 export const DomainAvailabilityCard = ({ analysis }) => {
     if (!analysis) return null;
 
+    const isTaken = analysis.exact_match_status.toLowerCase().includes("taken");
+
     return (
-        <Card className="playful-card border-l-4 border-l-blue-400 h-full">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-widest text-blue-400">
-                    🌐 Domain Status
+        <Card className={`${CARD_STYLE} h-full border-l-4 ${isTaken ? 'border-l-amber-400' : 'border-l-emerald-400'}`}>
+            <CardHeader className="pb-3 pt-5">
+                <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Domain Status
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 pt-4">
+            <CardContent className="space-y-5">
                 <div>
-                    <div className="text-2xl font-extrabold text-slate-900 mb-1 break-words">
-                        {analysis.exact_match_status}
+                    <div className={`text-xl font-bold ${isTaken ? 'text-amber-600' : 'text-emerald-600'} mb-1 break-words`}>
+                        {analysis.exact_match_status.split(':')[0]}
                     </div>
+                    <Badge variant="secondary" className={`mt-1 ${isTaken ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {isTaken ? 'Registered' : 'Available'}
+                    </Badge>
                 </div>
                 
                 <div>
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Alternatives</h4>
-                    <ul className="space-y-3">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Alternatives</h4>
+                    <div className="space-y-2">
                         {analysis.alternatives.map((alt, i) => (
-                            <li key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm bg-slate-50 p-3 rounded-lg gap-2">
-                                <span className="font-bold text-slate-700">{alt.domain}</span>
-                                <span className="text-xs text-slate-400 font-medium">{alt.example}</span>
-                            </li>
+                            <div key={i} className="flex justify-between items-center text-sm bg-slate-50 p-2 rounded-lg border border-slate-100 hover:border-violet-200 transition-colors">
+                                <span className="font-bold text-slate-700 text-xs">{alt.domain}</span>
+                                <span className="text-[10px] text-slate-400">{alt.example}</span>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-100">
-                    <p className="text-sm text-blue-800 leading-relaxed font-medium">
-                        <span className="font-bold block text-xs uppercase tracking-wider text-blue-400 mb-1">Strategy</span> 
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
                         {analysis.strategy_note}
                     </p>
                 </div>
@@ -259,69 +317,46 @@ export const FinalAssessmentCard = ({ assessment }) => {
     if (!assessment) return null;
 
     return (
-        <Card className="playful-card border-0 ring-4 ring-indigo-50 shadow-2xl">
-            <CardHeader className="bg-indigo-900 text-white p-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <Lightbulb className="w-6 h-6 text-yellow-400" />
-                    <CardTitle className="text-2xl font-black tracking-tight">Final Assessment & Recommendations</CardTitle>
+        <Card className={`${CARD_STYLE} ring-1 ring-slate-200 shadow-lg`}>
+            <CardHeader className="bg-slate-900 text-white p-6">
+                <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                    <CardTitle className="text-lg font-bold tracking-tight">Final Assessment</CardTitle>
                 </div>
-                <p className="text-indigo-200 font-medium">Strategic Roadmap & Go-to-Market Verdict</p>
+                <p className="text-slate-400 text-sm font-medium">Consultant Verdict & Roadmap</p>
             </CardHeader>
             
             <CardContent className="p-0">
-                {/* Verdict Section */}
-                <div className="p-8 border-b border-slate-100">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                        <h3 className="text-xl font-black text-slate-900">Verdict</h3>
-                        <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-4 py-1 text-sm font-bold border-0">
-                            Suitability Score: {assessment.suitability_score}/10
-                        </Badge>
-                    </div>
-                    <p className="text-lg font-medium text-slate-700 leading-relaxed border-l-4 border-indigo-500 pl-6 italic bg-slate-50/50 py-4 pr-4 rounded-r-xl">
-                        "{assessment.verdict_statement}"
-                    </p>
-                </div>
-
-                {/* Score Breakdown */}
-                <div className="p-8 bg-slate-50/50 border-b border-slate-100">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Component Breakdown</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {assessment.dimension_breakdown.map((item, i) => {
-                            const [key, val] = Object.entries(item)[0];
-                            return (
-                                <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                                    <div className="text-2xl font-black text-slate-900 mb-1">{val}/10</div>
-                                    <div className="text-xs font-bold text-slate-500 uppercase">{key}</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Recommendations Grid */}
-                <div className="p-8 bg-white">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-emerald-600 mb-6 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4" /> Strategic Recommendations
-                    </h4>
-                    <div className="grid md:grid-cols-3 gap-6 mb-8">
-                        {assessment.recommendations.map((rec, i) => (
-                            <div key={i} className="bg-emerald-50/30 p-6 rounded-2xl border border-emerald-100/50 hover:border-emerald-200 transition-colors">
-                                <h5 className="font-bold text-slate-900 mb-3 text-lg">{rec.title}</h5>
-                                <p className="text-sm text-slate-600 font-medium leading-relaxed">{rec.content}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Alternative Path */}
-                    {assessment.alternative_path && (
-                        <div className="mt-8 bg-amber-50 p-6 rounded-2xl border border-amber-100 flex items-start gap-4">
-                            <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" />
-                            <div>
-                                <h5 className="font-bold text-amber-900 mb-2">Alternative Path</h5>
-                                <p className="text-sm text-amber-800 font-medium leading-relaxed">{assessment.alternative_path}</p>
-                            </div>
+                <div className="grid grid-cols-1 md:grid-cols-12">
+                    {/* Verdict - 4 cols */}
+                    <div className="md:col-span-4 p-6 border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/30">
+                        <div className="mb-4">
+                            <span className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-2">Suitability Score</span>
+                            <span className="text-4xl font-black text-slate-900">{assessment.suitability_score}<span className="text-lg text-slate-400 font-medium">/10</span></span>
                         </div>
-                    )}
+                        <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+                            "{assessment.verdict_statement}"
+                        </p>
+                    </div>
+
+                    {/* Breakdown - 8 cols */}
+                    <div className="md:col-span-8 p-6">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Strategic Roadmap</h4>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {assessment.recommendations.map((rec, i) => (
+                                <div key={i} className="p-4 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-violet-200 transition-all">
+                                    <h5 className="font-bold text-slate-900 text-sm mb-2 text-violet-700">{rec.title}</h5>
+                                    <p className="text-xs text-slate-600 leading-relaxed">{rec.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                        {assessment.alternative_path && (
+                            <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 items-start">
+                                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                <p className="text-xs text-amber-800 font-medium">{assessment.alternative_path}</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </CardContent>
         </Card>

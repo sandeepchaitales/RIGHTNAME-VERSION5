@@ -1,137 +1,172 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { BrandRadarChart, ScoreCard, CompetitionAnalysis, TrademarkRiskTable, DomainAvailabilityCard, FinalAssessmentCard, VisibilityAnalysisCard } from '../components/AnalysisComponents';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Printer, ArrowLeft, CheckCircle2, XCircle, Star, Shield, Globe } from "lucide-react";
+import { Printer, ArrowLeft, CheckCircle2, XCircle, Star, Shield, Globe, Menu, LayoutDashboard } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const StickyHeader = ({ brandName, score, verdict, isVisible }) => (
+    <div className={`fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-slate-200 z-50 transition-all duration-300 transform ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+                <h2 className="text-lg font-bold text-slate-900">{brandName}</h2>
+                <Badge variant="secondary" className="font-mono font-bold text-xs">{score}/100</Badge>
+            </div>
+            <div className="flex items-center gap-3">
+                <Badge className={
+                    verdict === 'GO' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"
+                }>{verdict}</Badge>
+                <Button size="sm" onClick={() => window.print()} variant="outline">Export</Button>
+            </div>
+        </div>
+    </div>
+);
 
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { data, query } = location.state || {};
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+        setScrolled(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   if (!data) {
     return (
         <div className="min-h-screen flex items-center justify-center flex-col bg-slate-50">
-            <h2 className="text-xl mb-4 font-bold text-slate-800">No data found</h2>
-            <Button onClick={() => navigate('/')}>Go Back</Button>
+            <div className="p-8 bg-white rounded-2xl shadow-lg text-center">
+                <h2 className="text-xl mb-4 font-bold text-slate-800">Session Expired</h2>
+                <Button onClick={() => navigate('/')}>Return Home</Button>
+            </div>
         </div>
     );
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const activeBrand = data.brand_scores[0]; // Assuming single brand focus for detailed view for now
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20 print:bg-white font-sans selection:bg-violet-200">
-      {/* Navbar - Hidden on Print */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4 flex justify-between items-center print:hidden shadow-sm">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-violet-100 pb-24">
+      
+      {/* Scroll Header */}
+      <StickyHeader 
+        brandName={activeBrand.brand_name} 
+        score={activeBrand.namescore} 
+        verdict={activeBrand.verdict}
+        isVisible={scrolled}
+      />
+
+      {/* Main Navbar */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center print:hidden">
         <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:bg-violet-50 hover:text-violet-600 rounded-full">
-                <ArrowLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:bg-slate-100 rounded-full">
+                <ArrowLeft className="h-5 w-5 text-slate-600" />
             </Button>
-            <h1 className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600">RIGHTNAME</h1>
+            <div className="flex flex-col">
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight">RIGHTNAME</h1>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Report v2.2</span>
+            </div>
         </div>
-        <Button onClick={handlePrint} variant="outline" className="gap-2 rounded-full border-2 hover:bg-slate-50">
-            <Printer className="h-4 w-4" />
-            Export PDF
-        </Button>
+        <div className="flex items-center gap-3">
+            <Badge variant="outline" className="hidden md:flex border-slate-200 text-slate-500 font-medium">
+                {query.category} • {query.market_scope}
+            </Badge>
+            <Button onClick={() => window.print()} variant="outline" className="gap-2 rounded-lg border-slate-200 hover:border-slate-300">
+                <Printer className="h-4 w-4" />
+                <span className="hidden sm:inline">Export PDF</span>
+            </Button>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 space-y-20">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-10 space-y-12">
         
-        {/* Brand Details Loop */}
         {data.brand_scores.map((brand, idx) => (
-            <div key={idx} className="space-y-16 break-inside-avoid">
+            <div key={idx} className="space-y-12 animate-in fade-in duration-500">
                 
-                {/* HERO SECTION: NameScore + Executive Summary */}
-                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
-                    {/* Left: Score Card (Hero) */}
-                    <div className="lg:col-span-4 flex flex-col h-full">
+                {/* 1. Hero Section */}
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <div className="lg:col-span-8 flex flex-col justify-between space-y-6">
+                        <div>
+                            <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight mb-4">
+                                {brand.brand_name}
+                            </h1>
+                            <div className="flex flex-wrap gap-3">
+                                <Badge className="bg-slate-900 text-white px-3 py-1 text-sm font-bold border-0">
+                                    {brand.verdict}
+                                </Badge>
+                                <Badge variant="outline" className="text-slate-500 border-slate-200">
+                                    {brand.positioning_fit} positioning
+                                </Badge>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-violet-600 mb-2 flex items-center gap-2">
+                                <Star className="w-4 h-4" /> Executive Summary
+                            </h3>
+                            <p className="text-lg font-medium text-slate-700 leading-relaxed">
+                                {data.executive_summary}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-4">
                          <ScoreCard 
                             title="Rightname™ Index" 
                             score={brand.namescore} 
                             verdict={brand.verdict}
                             subtitle="Composite Consulting Grade"
-                            className="h-full shadow-xl shadow-violet-100 border-l-8"
+                            className="h-full shadow-lg shadow-slate-200/50"
                         />
-                    </div>
-
-                    {/* Right: Brand Title & Executive Summary */}
-                    <div className="lg:col-span-8 flex flex-col space-y-6">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <Badge className="mb-2 bg-violet-100 text-violet-700 hover:bg-violet-200 border-0 px-3 py-1 text-xs tracking-wider font-bold">PROJECT: {query.category}</Badge>
-                                <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
-                                    {brand.brand_name}
-                                </h1>
-                            </div>
-                            <div className="text-right hidden md:block">
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Market</p>
-                                <p className="font-bold text-lg text-slate-700">{query.market_scope}</p>
-                            </div>
-                        </div>
-
-                        <Card className="playful-card bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-xl flex-grow">
-                            <CardContent className="pt-8 pb-8 px-8 flex flex-col justify-center h-full">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-violet-300 mb-4 flex items-center gap-2">
-                                    <Star className="w-4 h-4" /> Executive Summary
-                                </h3>
-                                <p className="text-lg md:text-xl font-medium leading-relaxed opacity-95 text-slate-100">
-                                    {data.executive_summary}
-                                </p>
-                            </CardContent>
-                        </Card>
                     </div>
                 </section>
 
-                {/* 1. Strategy Section + Radar Chart (SIDE-BY-SIDE) */}
-                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                    {/* Strategy Snapshot (Left - 7 cols) */}
-                    <div className="lg:col-span-7 flex flex-col h-full">
-                        <div className="flex items-center space-x-4 mb-6">
-                             <div className="h-10 w-1.5 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
-                             <div>
-                                <h3 className="text-2xl font-black text-slate-900">Strategy Snapshot</h3>
-                                <p className="text-slate-500 font-medium">Positioning & Trade-offs</p>
-                             </div>
+                <Separator className="bg-slate-200/60" />
+
+                {/* 2. Strategy & Radar */}
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="lg:col-span-7 space-y-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-emerald-100 rounded-lg">
+                                <LayoutDashboard className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-900">Strategy Snapshot</h3>
                         </div>
 
-                        <Card className="playful-card bg-white border-0 ring-1 ring-slate-100 flex-grow">
-                            <CardContent className="pt-8">
-                                <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
-                                    <span className="text-violet-500">❝</span>
-                                    {brand.strategic_classification || "Analysis unavailable"}
+                        <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                            <CardContent className="p-8">
+                                <h3 className="text-xl font-bold text-slate-900 mb-6 italic border-l-4 border-violet-500 pl-4 py-1">
+                                    "{brand.strategic_classification}"
                                 </h3>
-                                
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
-                                        <h4 className="flex items-center text-sm font-black text-emerald-700 uppercase mb-4 tracking-wide">
-                                            <CheckCircle2 className="w-5 h-5 mr-2" />
-                                            Delivers
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase text-emerald-600 mb-4 flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4" /> Key Strengths
                                         </h4>
                                         <ul className="space-y-3">
-                                            {brand.pros && brand.pros.map((pro, i) => (
-                                                <li key={i} className="flex items-start text-sm md:text-base text-slate-700 font-medium">
-                                                    <span className="mr-3 text-emerald-500 font-bold">•</span>
+                                            {brand.pros.map((pro, i) => (
+                                                <li key={i} className="text-sm text-slate-700 font-medium flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
                                                     {pro}
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
-                                    
-                                    <div className="bg-rose-50/50 p-6 rounded-3xl border border-rose-100">
-                                        <h4 className="flex items-center text-sm font-black text-rose-700 uppercase mb-4 tracking-wide">
-                                            <XCircle className="w-5 h-5 mr-2" />
-                                            Sacrifices
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase text-rose-600 mb-4 flex items-center gap-2">
+                                            <XCircle className="w-4 h-4" /> Key Risks
                                         </h4>
                                         <ul className="space-y-3">
-                                            {brand.cons && brand.cons.map((con, i) => (
-                                                <li key={i} className="flex items-start text-sm md:text-base text-slate-700 font-medium">
-                                                    <span className="mr-3 text-rose-500 font-bold">•</span>
+                                            {brand.cons.map((con, i) => (
+                                                <li key={i} className="text-sm text-slate-700 font-medium flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 flex-shrink-0"></span>
                                                     {con}
                                                 </li>
                                             ))}
@@ -142,62 +177,42 @@ const Dashboard = () => {
                         </Card>
                     </div>
 
-                    {/* Radar Chart (Right - 5 cols) */}
-                    <div className="lg:col-span-5 flex flex-col h-full">
-                        <div className="flex items-center space-x-4 mb-6">
-                             <div className="h-10 w-1.5 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full"></div>
-                             <div>
-                                <h3 className="text-2xl font-black text-slate-900">Brand Dimensions</h3>
-                                <p className="text-slate-500 font-medium">6-Factor Analysis</p>
-                             </div>
+                    <div className="lg:col-span-5 flex flex-col">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2 bg-violet-100 rounded-lg">
+                                <Shield className="w-5 h-5 text-violet-600" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-900">Dimensions</h3>
                         </div>
-                        <div className="playful-card p-4 flex items-center justify-center bg-white h-full min-h-[500px]">
+                        <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl flex-grow flex items-center justify-center p-4">
                             <BrandRadarChart data={brand.dimensions} />
-                        </div>
+                        </Card>
                     </div>
                 </section>
 
-                {/* 2. Deep Dive Metrics (Domain, Visibility, Cultural) */}
-                <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Domain */}
-                    <div className="flex flex-col">
-                        {brand.domain_analysis && (
-                            <DomainAvailabilityCard analysis={brand.domain_analysis} />
-                        )}
-                    </div>
-
-                    {/* Visibility */}
-                    <div className="flex flex-col">
-                        {brand.visibility_analysis && (
-                            <VisibilityAnalysisCard analysis={brand.visibility_analysis} />
-                        )}
-                    </div>
-
-                    {/* Cultural/Positioning */}
-                    <div className="flex flex-col space-y-6">
-                        <Card className="playful-card border-l-4 border-l-cyan-400 flex-grow">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-xs font-bold uppercase text-cyan-500 tracking-widest">Positioning Fit</CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-4">
-                                <p className="text-base font-medium text-slate-700 leading-relaxed">{brand.positioning_fit}</p>
-                            </CardContent>
-                        </Card>
-
-                         <Card className="playful-card border-l-4 border-l-fuchsia-400 flex-grow">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-xs font-bold uppercase text-fuchsia-500 tracking-widest flex items-center gap-2">
-                                    <Globe className="w-3 h-3" /> Cultural Resonance
+                {/* 3. Deep Dive Grid */}
+                <section>
+                    <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <Globe className="w-5 h-5 text-slate-400" /> Market Intelligence
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <DomainAvailabilityCard analysis={brand.domain_analysis} />
+                        <VisibilityAnalysisCard analysis={brand.visibility_analysis} />
+                        
+                        <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl flex flex-col">
+                            <CardHeader className="pb-2 pt-5">
+                                <CardTitle className="text-xs font-bold uppercase tracking-widest text-fuchsia-500">
+                                    Cultural Fit
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4 pt-4">
+                            <CardContent className="pt-4 space-y-4 flex-grow">
                                 {brand.cultural_analysis.map((c, i) => (
-                                    <div key={i} className="bg-fuchsia-50/50 p-4 rounded-xl">
-                                        <div className="flex justify-between font-bold text-base mb-2 text-slate-800">
-                                            <span>{c.country}</span>
-                                            <span className="text-fuchsia-600">{c.cultural_resonance_score}/10</span>
+                                    <div key={i} className="p-4 bg-fuchsia-50/50 rounded-xl border border-fuchsia-100">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="font-bold text-slate-800 text-sm">{c.country}</span>
+                                            <Badge variant="secondary" className="bg-white text-fuchsia-700 text-xs font-bold">{c.cultural_resonance_score}/10</Badge>
                                         </div>
-                                        <p className="text-sm text-slate-600 font-medium">{c.cultural_notes}</p>
+                                        <p className="text-xs text-slate-600 font-medium leading-relaxed">{c.cultural_notes}</p>
                                     </div>
                                 ))}
                             </CardContent>
@@ -205,69 +220,40 @@ const Dashboard = () => {
                     </div>
                 </section>
 
-                {/* 3. Competitor Analysis */}
+                {/* 4. Competition & Pricing */}
                 {brand.competitor_analysis && (
                     <section>
-                         <div className="flex items-center space-x-4 mb-8">
-                             <div className="h-10 w-1.5 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></div>
-                             <div>
-                                <h3 className="text-2xl font-black text-slate-900">Competition</h3>
-                                <p className="text-slate-500 font-medium">Market Landscape & Pricing</p>
-                             </div>
-                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-6">Competitive Landscape</h3>
                         <CompetitionAnalysis data={brand.competitor_analysis} />
                     </section>
                 )}
-                
-                {/* 4. Legal Risk - Full Width Container */}
+
+                {/* 5. Legal Risk */}
                 {brand.trademark_matrix && (
-                    <section className="w-full">
-                        <div className="flex items-center space-x-4 mb-8">
-                            <div className="h-10 w-1.5 bg-gradient-to-b from-rose-500 to-pink-500 rounded-full"></div>
-                            <div>
-                                <h3 className="text-2xl font-black text-slate-900">Legal Risk Analysis</h3>
-                                <p className="text-slate-500 font-medium">Detailed breakdown of potential IP conflicts</p>
-                            </div>
-                        </div>
-                        <div className="w-full overflow-hidden">
-                            <TrademarkRiskTable matrix={brand.trademark_matrix} />
-                        </div>
+                    <section>
+                        <h3 className="text-xl font-bold text-slate-900 mb-6">Legal Risk Matrix</h3>
+                        <TrademarkRiskTable matrix={brand.trademark_matrix} />
                     </section>
                 )}
 
-                {/* 5. Final Assessment & Recommendations - NEW SECTION */}
+                {/* 6. Final Assessment */}
                 {brand.final_assessment && (
-                    <section className="w-full">
-                        <div className="flex items-center space-x-4 mb-8">
-                            <div className="h-10 w-1.5 bg-gradient-to-b from-indigo-500 to-violet-500 rounded-full"></div>
-                            <div>
-                                <h3 className="text-2xl font-black text-slate-900">Final Recommendation</h3>
-                                <p className="text-slate-500 font-medium">Executive Verdict & Next Steps</p>
-                            </div>
-                        </div>
-                        <div className="w-full">
-                            <FinalAssessmentCard assessment={brand.final_assessment} />
-                        </div>
+                    <section>
+                        <FinalAssessmentCard assessment={brand.final_assessment} />
                     </section>
                 )}
 
-                {/* 6. Detailed Cards */}
+                {/* 7. Detailed Cards Grid */}
                 <section>
-                     <div className="flex items-center space-x-4 mb-8">
-                         <div className="h-10 w-1.5 bg-gradient-to-b from-violet-500 to-indigo-500 rounded-full"></div>
-                         <div>
-                            <h3 className="text-2xl font-black text-slate-900">Deep Dive Analysis</h3>
-                            <p className="text-slate-500 font-medium">Detailed 6-Factor Framework Breakdown</p>
-                         </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <h3 className="text-xl font-bold text-slate-900 mb-6">Detailed Analysis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {brand.dimensions.map((dim, i) => (
-                            <Card key={i} className="playful-card border-slate-100 hover:translate-y-[-4px] transition-transform duration-300">
-                                <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+                            <Card key={i} className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden group">
+                                <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4 group-hover:bg-slate-50 transition-colors">
                                     <div className="flex justify-between items-start">
-                                        <CardTitle className="text-lg font-bold text-slate-800">{dim.name}</CardTitle>
-                                        <Badge variant="outline" className="bg-white text-violet-600 font-black border-slate-200 text-lg px-3">
-                                            {dim.score}
+                                        <CardTitle className="text-base font-bold text-slate-800">{dim.name}</CardTitle>
+                                        <Badge className="bg-white text-violet-700 border-slate-200 font-bold">
+                                            {dim.score}/10
                                         </Badge>
                                     </div>
                                 </CardHeader>
@@ -283,7 +269,7 @@ const Dashboard = () => {
 
             </div>
         ))}
-      </div>
+      </main>
     </div>
   );
 };
