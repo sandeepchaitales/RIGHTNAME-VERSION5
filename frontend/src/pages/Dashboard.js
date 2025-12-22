@@ -262,7 +262,10 @@ const Dashboard = () => {
                 {brand.trademark_matrix && (
                     <section className="print:break-before-page">
                         <h3 className="text-xl font-bold text-slate-900 mb-6">Legal Risk Matrix</h3>
-                        <TrademarkRiskTable matrix={brand.trademark_matrix} />
+                        <TrademarkRiskTable 
+                            matrix={brand.trademark_matrix} 
+                            trademarkClasses={brand.trademark_classes} 
+                        />
                     </section>
                 )}
 
