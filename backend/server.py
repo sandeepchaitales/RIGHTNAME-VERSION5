@@ -11,6 +11,8 @@ import uuid
 from datetime import datetime, timezone
 import json
 import whois
+import asyncio
+import random
 
 # Import custom modules
 from schemas import BrandEvaluationRequest, BrandEvaluationResponse, StatusCheck, StatusCheckCreate
@@ -36,15 +38,6 @@ db = client[os.environ.get('DB_NAME', 'rightname_db')]
 EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
 if not EMERGENT_KEY:
     logging.warning("EMERGENT_LLM_KEY not found in .env")
-
-llm_chat = None
-if LlmChat and EMERGENT_KEY:
-    # Switched to gpt-4o-mini to reduce cost and latency while maintaining quality via prompt engineering
-    llm_chat = LlmChat(
-        api_key=EMERGENT_KEY,
-        session_id="rightname_session",
-        system_message=SYSTEM_PROMPT
-    ).with_model("openai", "gpt-4o-mini")
 
 # Create the main app
 app = FastAPI()
@@ -76,7 +69,15 @@ async def root():
 
 @api_router.post("/evaluate", response_model=BrandEvaluationResponse)
 async def evaluate_brands(request: BrandEvaluationRequest):
-    if not llm_chat:
+    # Initialize LLM with High-Quality Model (GPT-4o) on every request to ensure fresh session
+    if LlmChat and EMERGENT_KEY:
+        # Reverting to GPT-4o for maximum quality as requested ("Power Tool")
+        llm_chat = LlmChat(
+            api_key=EMERGENT_KEY,
+            session_id=f"rightname_{uuid.uuid4()}", # Unique session per request
+            system_message=SYSTEM_PROMPT
+        ).with_model("openai", "gpt-4o")
+    else:
         raise HTTPException(status_code=500, detail="LLM Integration not initialized (Check EMERGENT_LLM_KEY)")
     
     # 1. Check Domains
@@ -121,50 +122,64 @@ async def evaluate_brands(request: BrandEvaluationRequest):
     - List the top found brands/apps in the JSON fields.
     """
     
-    try:
-        user_message = UserMessage(text=user_prompt)
-        response = await llm_chat.send_message(user_message)
-        
-        # Parse JSON
-        content = ""
-        if hasattr(response, 'text'):
-            content = response.text
-        elif isinstance(response, str):
-            content = response
-        else:
-            content = str(response)
+    # Retry Logic for 502 Errors
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            user_message = UserMessage(text=user_prompt)
+            response = await llm_chat.send_message(user_message)
             
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0]
-        
-        data = json.loads(content.strip())
-        
-        # Validate
-        evaluation = BrandEvaluationResponse(**data)
-        
-        # Save
-        doc = evaluation.model_dump()
-        doc['created_at'] = datetime.now(timezone.utc).isoformat()
-        doc['request'] = request.model_dump()
-        await db.evaluations.insert_one(doc)
-        
-        return evaluation
-        
-    except Exception as e:
-        error_msg = str(e)
-        logging.error(f"Error in LLM evaluation: {error_msg}")
-        
-        # Friendly error mapping
-        if "Budget has been exceeded" in error_msg:
-            detail_msg = "LLM Budget Exceeded. The system has switched to a more efficient model to prevent this, but if it persists, please check your key balance."
-        elif "502" in error_msg or "BadGateway" in error_msg:
-            detail_msg = "AI Provider Overloaded (502). Please try again in a few seconds."
-        else:
-            detail_msg = f"Analysis failed: {error_msg}"
+            # Parse JSON
+            content = ""
+            if hasattr(response, 'text'):
+                content = response.text
+            elif isinstance(response, str):
+                content = response
+            else:
+                content = str(response)
+                
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
             
-        raise HTTPException(status_code=500, detail=detail_msg)
+            data = json.loads(content.strip())
+            
+            # Validate
+            evaluation = BrandEvaluationResponse(**data)
+            
+            # Save
+            doc = evaluation.model_dump()
+            doc['created_at'] = datetime.now(timezone.utc).isoformat()
+            doc['request'] = request.model_dump()
+            await db.evaluations.insert_one(doc)
+            
+            return evaluation
+            
+        except Exception as e:
+            last_error = e
+            error_msg = str(e)
+            
+            # If it's a budget error, fail immediately (retrying won't help)
+            if "Budget has been exceeded" in error_msg:
+                logging.error(f"LLM Budget Exceeded: {error_msg}")
+                raise HTTPException(status_code=402, detail="Emergent Key Budget Exceeded. Please add credits to generate high-quality reports.")
+            
+            # If it's a 502/BadGateway, wait and retry
+            if "502" in error_msg or "BadGateway" in error_msg or "ServiceUnavailable" in error_msg:
+                wait_time = (2 ** attempt) + random.uniform(0, 1) # Exponential backoff
+                logging.warning(f"LLM 502 Error (Attempt {attempt+1}/{max_retries}). Retrying in {wait_time:.2f}s...")
+                await asyncio.sleep(wait_time)
+                continue
+            
+            # Other errors (parsing, logic) - log and fail
+            logging.error(f"LLM Error: {error_msg}")
+            break
+            
+    # If we get here, all retries failed
+    raise HTTPException(status_code=500, detail=f"Analysis failed after retries: {str(last_error)}")
 
 # Status Routes
 @api_router.post("/status", response_model=StatusCheck)
