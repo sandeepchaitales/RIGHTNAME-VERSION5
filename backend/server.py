@@ -13,6 +13,7 @@ import json
 import whois
 import asyncio
 import random
+import re
 
 # Import custom modules
 from schemas import BrandEvaluationRequest, BrandEvaluationResponse, StatusCheck, StatusCheckCreate
@@ -60,6 +61,14 @@ def check_domain_availability(brand_name: str) -> str:
         else:
             return f"{domain}: CHECK FAILED (Error: {str(e)}). Assume TAKEN to be safe."
 
+def clean_json_string(s):
+    """
+    Cleans invalid control characters from JSON string before parsing.
+    """
+    # Remove control characters (0-31) except newlines and tabs
+    s = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', s)
+    return s
+
 @api_router.get("/")
 async def root():
     return {"message": "RightName API is running"}
@@ -67,7 +76,6 @@ async def root():
 @api_router.post("/evaluate", response_model=BrandEvaluationResponse)
 async def evaluate_brands(request: BrandEvaluationRequest):
     if LlmChat and EMERGENT_KEY:
-        # Removed max_tokens causing TypeError. GPT-4o default output is usually sufficient (4096 tokens).
         llm_chat = LlmChat(
             api_key=EMERGENT_KEY,
             session_id=f"rightname_{uuid.uuid4()}",
@@ -141,6 +149,7 @@ async def evaluate_brands(request: BrandEvaluationRequest):
             
             # Sanitization
             content = content.strip()
+            content = clean_json_string(content)
             
             data = json.loads(content)
             
@@ -162,7 +171,7 @@ async def evaluate_brands(request: BrandEvaluationRequest):
                 raise HTTPException(status_code=402, detail="Emergent Key Budget Exceeded. Please add credits.")
             
             # Retry on 502/Gateway/Service errors AND JSON/Validation errors
-            if any(x in error_msg for x in ["502", "BadGateway", "ServiceUnavailable", "Expecting", "JSON", "validation error"]):
+            if any(x in error_msg for x in ["502", "BadGateway", "ServiceUnavailable", "Expecting", "JSON", "validation error", "control character"]):
                 wait_time = (2 ** attempt) + random.uniform(0, 1)
                 logging.warning(f"LLM Error (Attempt {attempt+1}/{max_retries}): {error_msg}. Retrying in {wait_time:.2f}s...")
                 await asyncio.sleep(wait_time)
