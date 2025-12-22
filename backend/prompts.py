@@ -48,7 +48,12 @@ For each dimension, provide a multi-paragraph deep dive (150-250 words per dimen
    - **Emotional Response**: Plot on "Modern vs. Traditional" and "Accessible vs. Exclusive".
    - **Gap Analysis**: Difference between "Desired Positioning" and "Actual Perception".
 
-### 4. JSON OUTPUT STRUCTURE
+### 4. COMPETITIVE LANDSCAPE & PRICING (Crucial)
+   - **Competitor Table**: Select 3-4 direct competitors. Define their positioning precisely (e.g. "Legacy Luxury" vs "Modern Utility").
+   - **White Space**: Use "Blue Ocean" logic. Where is the gap?
+   - **Pricing**: Justify the price point with "Value-based pricing" logic.
+
+### 5. JSON OUTPUT STRUCTURE
 Return ONLY valid JSON.
 
 {
@@ -74,10 +79,11 @@ Return ONLY valid JSON.
       
       "competitor_analysis": {
           "competitors": [
-              {"name": "Comp A", "positioning": "Deep analysis of positioning", "price_range": "High"}
+              {"name": "Comp A", "positioning": "Precise 3-word positioning (e.g. 'Heritage Luxury Leader')", "price_range": "High (€500+)"},
+              {"name": "Comp B", "positioning": "Precise 3-word positioning", "price_range": "Mid (€100-300)"}
           ],
-          "white_space_analysis": "A full paragraph analyzing the market gap using the Blue Ocean framework.",
-          "strategic_advantage": "The specific 'Unfair Advantage' this name provides.",
+          "white_space_analysis": "A full paragraph analyzing the market gap using the Blue Ocean framework. Define the specific niche this name owns.",
+          "strategic_advantage": "The specific 'Unfair Advantage' this name provides over the competitors listed above.",
           "suggested_pricing": "Specific pricing strategy (e.g. 'Skimming strategy at 20% premium')"
       },
       
