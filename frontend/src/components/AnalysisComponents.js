@@ -5,14 +5,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Lightbulb, AlertTriangle, ArrowUpRight, Minus, TrendingUp } from "lucide-react";
+import { CheckCircle2, Lightbulb, AlertTriangle, ArrowUpRight, Minus, TrendingUp, Info } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 // --- Design System Tokens ---
-// These classes represent our "Premium SaaS" aesthetic
 const CARD_STYLE = "bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden";
-const SECTION_HEADER_STYLE = "text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2 mb-4";
-const SUBTLE_BADGE = "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium px-2.5 py-0.5 rounded-md text-xs";
 
 // --- Sub-Components ---
 
@@ -58,6 +55,7 @@ export const BrandRadarChart = ({ data }) => {
             fill="#8b5cf6"
             fillOpacity={0.2}
             isAnimationActive={true}
+            label={{ position: 'top', fill: '#7c3aed', fontSize: 12, fontWeight: 'bold' }}
           />
           <Tooltip 
             formatter={(value) => [<span className="font-bold text-violet-700">{value}/10</span>, 'Score']}
@@ -72,8 +70,8 @@ export const BrandRadarChart = ({ data }) => {
           />
         </RadarChart>
       </ResponsiveContainer>
-      <div className="absolute bottom-2 right-2 text-[10px] text-slate-400 font-medium">
-        * 6-Point Proprietary Analysis
+      <div className="absolute bottom-2 right-2 text-[10px] text-slate-400 font-medium bg-white/80 px-2 py-1 rounded-md border border-slate-100">
+        Scale: 0-10 (Higher is Better)
       </div>
     </div>
   );
@@ -212,17 +210,17 @@ export const TrademarkRiskTable = ({ matrix }) => {
     ];
 
     const getZoneBadge = (zone) => {
-        if (zone === "Green") return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">LOW</span>;
-        if (zone === "Yellow") return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">MED</span>;
-        return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">HIGH</span>;
+        if (zone === "Green") return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">LOW RISK</span>;
+        if (zone === "Yellow") return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">MEDIUM RISK</span>;
+        return <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">HIGH RISK</span>;
     };
 
     return (
         <Card className={CARD_STYLE}>
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-500">
-                        Risk Matrix
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" /> Legal Risk Assessment Matrix
                     </CardTitle>
                     <Badge variant="outline" className="bg-white text-slate-600">IP Analysis</Badge>
                  </div>
@@ -231,11 +229,11 @@ export const TrademarkRiskTable = ({ matrix }) => {
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent border-b border-slate-100">
-                            <TableHead className="w-[20%] font-bold text-slate-700 pl-6">Factor</TableHead>
-                            <TableHead className="w-[10%] text-center font-bold text-slate-700">Prob.</TableHead>
-                            <TableHead className="w-[10%] text-center font-bold text-slate-700">Sev.</TableHead>
-                            <TableHead className="w-[10%] text-center font-bold text-slate-700">Risk</TableHead>
-                            <TableHead className="w-[50%] font-bold text-slate-700">Mitigation Strategy</TableHead>
+                            <TableHead className="w-[20%] font-bold text-slate-800 pl-6 text-xs uppercase tracking-wide">Risk Factor</TableHead>
+                            <TableHead className="w-[12%] text-center font-bold text-slate-800 text-xs uppercase tracking-wide">Probability</TableHead>
+                            <TableHead className="w-[12%] text-center font-bold text-slate-800 text-xs uppercase tracking-wide">Severity</TableHead>
+                            <TableHead className="w-[12%] text-center font-bold text-slate-800 text-xs uppercase tracking-wide">Zone</TableHead>
+                            <TableHead className="w-[44%] font-bold text-slate-800 text-xs uppercase tracking-wide">Mitigation Strategy</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -243,15 +241,15 @@ export const TrademarkRiskTable = ({ matrix }) => {
                             <TableRow key={idx} className="hover:bg-slate-50/30">
                                 <TableCell className="font-bold text-slate-900 pl-6 text-sm">{row.label}</TableCell>
                                 <TableCell className="text-center">
-                                    <div className="flex flex-col items-center gap-1">
-                                        <span className="text-xs font-bold text-slate-700">{row.likelihood}</span>
-                                        <Progress value={row.likelihood * 10} className="h-1 w-12" />
+                                    <div className="flex flex-col items-center gap-1.5">
+                                        <span className="text-sm font-bold text-slate-900">{row.likelihood}/10</span>
+                                        <Progress value={row.likelihood * 10} className="h-1.5 w-16 bg-slate-100" />
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <div className="flex flex-col items-center gap-1">
-                                        <span className="text-xs font-bold text-slate-700">{row.severity}</span>
-                                        <Progress value={row.severity * 10} className="h-1 w-12" color={row.severity > 7 ? 'bg-rose-500' : 'bg-slate-900'} />
+                                    <div className="flex flex-col items-center gap-1.5">
+                                        <span className="text-sm font-bold text-slate-900">{row.severity}/10</span>
+                                        <Progress value={row.severity * 10} className="h-1.5 w-16 bg-slate-100" color={row.severity > 7 ? 'bg-rose-500' : row.severity > 4 ? 'bg-amber-500' : 'bg-emerald-500'} />
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-center">{getZoneBadge(row.zone)}</TableCell>
@@ -261,9 +259,38 @@ export const TrademarkRiskTable = ({ matrix }) => {
                     </TableBody>
                 </Table>
             </div>
-            <div className="p-6 bg-slate-50 border-t border-slate-100">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Assessment Summary</h4>
-                <p className="text-sm text-slate-800 leading-relaxed">{matrix.overall_assessment}</p>
+            
+            {/* Scoring Legend Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row gap-6 text-xs text-slate-500">
+                <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-slate-400" />
+                    <span className="font-bold uppercase tracking-wider">Scoring Key:</span>
+                </div>
+                <div className="flex gap-4 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span><strong>1-3:</strong> Low Risk (Green)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span><strong>4-6:</strong> Moderate Risk (Yellow)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                        <span><strong>7-10:</strong> Critical Risk (Red)</span>
+                    </div>
+                </div>
+                <div className="hidden md:block w-px h-4 bg-slate-300"></div>
+                <div>
+                    <strong>Probability:</strong> Likelihood of legal conflict. 
+                    <span className="mx-2">•</span>
+                    <strong>Severity:</strong> Business impact if conflict occurs.
+                </div>
+            </div>
+
+            <div className="p-6 bg-white border-t border-slate-100">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Overall Assessment</h4>
+                <p className="text-sm text-slate-800 leading-relaxed font-medium">{matrix.overall_assessment}</p>
             </div>
         </Card>
     );
