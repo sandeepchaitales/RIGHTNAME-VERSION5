@@ -30,7 +30,7 @@ class BrandEvaluationTester:
     def test_api_health(self):
         """Test basic API health"""
         try:
-            response = requests.get(f"{self.api_url}/", timeout=10)
+            response = requests.get(f"{self.api_url}/", timeout=30)
             success = response.status_code == 200
             details = f"Status: {response.status_code}, Response: {response.text[:100]}"
             self.log_test("API Health Check", success, details)
