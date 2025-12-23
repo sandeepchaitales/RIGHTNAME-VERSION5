@@ -456,6 +456,23 @@ export const AlternativeNamesCard = ({ alternatives, verdict }) => {
             </CardHeader>
             
             <CardContent className="p-6">
+                {/* Poison Words Warning */}
+                {alternatives.poison_words && alternatives.poison_words.length > 0 && (
+                    <div className="mb-4 p-3 bg-rose-50 rounded-xl border border-rose-200 flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-rose-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-rose-600">Poison Words to Avoid: </span>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                                {alternatives.poison_words.map((word, i) => (
+                                    <Badge key={i} className="bg-rose-100 text-rose-700 border border-rose-300 font-bold">
+                                        {word}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Reasoning */}
                 <div className="mb-6 p-4 bg-white rounded-xl border border-amber-200">
                     <p className="text-sm text-slate-700 font-medium leading-relaxed italic">
@@ -466,7 +483,7 @@ export const AlternativeNamesCard = ({ alternatives, verdict }) => {
                 {/* Alternative Suggestions */}
                 <div className="space-y-4">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-amber-700 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" /> Suggested Alternatives
+                        <Sparkles className="w-4 h-4" /> Suggested Alternatives (Poison-Word Free)
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {alternatives.suggestions.map((alt, i) => (
