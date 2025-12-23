@@ -19,6 +19,7 @@ import re
 from schemas import BrandEvaluationRequest, BrandEvaluationResponse, StatusCheck, StatusCheckCreate
 from prompts import SYSTEM_PROMPT
 from visibility import check_visibility
+from availability import check_full_availability, check_multi_domain_availability, check_social_availability
 
 # Import Emergent Integration
 try:
