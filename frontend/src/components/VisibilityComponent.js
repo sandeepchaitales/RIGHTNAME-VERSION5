@@ -94,7 +94,8 @@ export const VisibilityAnalysisCard = ({ analysis }) => {
                                             <Badge className="bg-rose-100 text-rose-700 text-[10px]">
                                                 Customers: {item.customer_overlap}
                                             </Badge>
-                                    )}
+                                        )}
+                                    </div>
                                     {item.reason && <p className="text-xs text-rose-500 mt-1 italic">{item.reason}</p>}
                                 </div>
                             ))}
