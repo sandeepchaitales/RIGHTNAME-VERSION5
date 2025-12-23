@@ -66,54 +66,32 @@ def clean_json_string(s):
     Cleans and fixes invalid control characters from JSON string before parsing.
     Properly escapes control characters that break JSON parsing.
     """
-    # First, replace common problematic patterns
-    # Replace unescaped newlines and tabs within strings with their escaped versions
-    # This regex finds content between quotes and escapes newlines/tabs inside them
-    
     # Remove BOM and other invisible characters
     s = s.replace('\ufeff', '')
     
     # Remove control characters (0-8, 11, 12, 14-31) but keep newlines (\n=10) and tabs (\t=9) and carriage return (\r=13)
     s = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', s)
     
-    # The main issue: LLM returns multi-line strings that break JSON parsing
-    # We need to convert actual newlines inside JSON string values to \\n
-    # This is tricky - we'll use a different approach: parse line by line and fix
+    return s
+
+def repair_json(s):
+    """
+    Attempts to repair common JSON syntax errors produced by LLMs.
+    """
+    # Remove trailing commas before } or ]
+    s = re.sub(r',(\s*[}\]])', r'\1', s)
     
-    lines = s.split('\n')
-    fixed_lines = []
-    in_string = False
-    for line in lines:
-        # Simple heuristic: if we're in a multi-line string value, join with escaped newline
-        # Count unescaped quotes to track string state
-        quote_count = 0
-        i = 0
-        while i < len(line):
-            if line[i] == '"' and (i == 0 or line[i-1] != '\\'):
-                quote_count += 1
-            i += 1
-        
-        fixed_lines.append(line)
-        # Flip string state if odd number of quotes
-        if quote_count % 2 == 1:
-            in_string = not in_string
+    # Fix missing commas between } and " (common LLM error)
+    # Pattern: }\n   " or }  " should become },\n   " 
+    s = re.sub(r'\}(\s*)"', r'},\1"', s)
     
-    # Join with proper handling
-    result = '\n'.join(fixed_lines)
+    # Fix missing commas between ] and " 
+    s = re.sub(r'\](\s*)"', r'],\1"', s)
     
-    # Final cleanup: ensure all strings with literal newlines are properly escaped
-    # This regex approach handles escaped newlines within JSON string values
-    def escape_newlines_in_strings(match):
-        content = match.group(1)
-        # Escape any literal newlines that aren't already escaped
-        content = content.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-        return '"' + content + '"'
+    # Fix missing commas between strings: "value"\n  "key"
+    s = re.sub(r'"(\s*\n\s*)"([a-zA-Z_])', r'",\1"\2', s)
     
-    # Match JSON string values and escape their newlines
-    # This pattern matches strings including those with escaped quotes inside
-    result = re.sub(r'"((?:[^"\\]|\\.)*)"\s*(?=[,}\]:]|$)', escape_newlines_in_strings, result, flags=re.DOTALL)
-    
-    return result
+    return s
 
 @api_router.get("/")
 async def root():
