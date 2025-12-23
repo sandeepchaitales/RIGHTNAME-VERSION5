@@ -190,6 +190,30 @@ Return ONLY valid JSON.
           ],
           "strategy_note": "Strategic advice on acquisition."
       },
+
+      "multi_domain_availability": {
+          "category_domains": [
+              {"domain": "brand.shop", "status": "AVAILABLE/TAKEN", "available": true},
+              {"domain": "brand.store", "status": "AVAILABLE/TAKEN", "available": false}
+          ],
+          "country_domains": [
+              {"domain": "brand.in", "status": "AVAILABLE/TAKEN", "available": true},
+              {"domain": "brand.co.in", "status": "AVAILABLE/TAKEN", "available": false}
+          ],
+          "recommended_domain": "The best available domain from the list",
+          "acquisition_strategy": "Strategy for acquiring domains"
+      },
+
+      "social_availability": {
+          "handle": "brandname",
+          "platforms": [
+              {"platform": "instagram", "handle": "brandname", "status": "AVAILABLE/TAKEN", "available": true},
+              {"platform": "twitter", "handle": "brandname", "status": "AVAILABLE/TAKEN", "available": false}
+          ],
+          "available_platforms": ["instagram", "youtube"],
+          "taken_platforms": ["twitter", "facebook"],
+          "recommendation": "Secure available handles immediately. For taken platforms, consider variations like brandname_official or getbrandname."
+      },
       
       "visibility_analysis": {
           "google_presence": [],
