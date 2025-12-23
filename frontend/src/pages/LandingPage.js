@@ -138,7 +138,11 @@ const LandingPage = () => {
 
       const payload = {
         brand_names: brands,
+        industry: formData.industry,
         category: formData.category,
+        product_type: formData.product_type,
+        usp: formData.usp,
+        brand_vibe: formData.brand_vibe,
         positioning: formData.positioning,
         market_scope: formData.market_scope,
         countries: countriesList
