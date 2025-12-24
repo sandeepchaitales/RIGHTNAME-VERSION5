@@ -348,11 +348,13 @@ Return ONLY valid JSON.
       "CRITICAL_RULE_FOR_ALTERNATIVES": "NEVER include the poison word or any variation of it in suggestions. If 'Metro' is the problem, do NOT suggest MetroLink, MetroMart, MetroZone, etc. Use completely different words like Urban, City, Central, District, etc.",
       
       "competitor_analysis": {
+          "CRITICAL_INSTRUCTION": "THIS IS MARKET STRATEGY, NOT TRADEMARK SEARCH! Search by CATEGORY (e.g., 'top salon booking apps'), NOT by brand name!",
           "x_axis_label": "Category-specific X-axis label (e.g., 'Price: Budget → Luxury')",
           "y_axis_label": "Category-specific Y-axis label (e.g., 'Style: Classic → Avant-Garde')",
           "competitors": [
               {
-                  "name": "REAL Competitor Brand Name (e.g., Nykaa, Boat, Swiggy)", 
+                  "RULE": "MUST be a REAL market competitor in the USER'S CATEGORY, regardless of name similarity!",
+                  "name": "REAL Competitor Brand Name - Search 'top [category] brands in [market]' (e.g., Fresha for salon apps, Nykaa for beauty)", 
                   "x_coordinate": 75,
                   "y_coordinate": 60,
                   "price_position": "Premium",
