@@ -402,8 +402,6 @@ Return ONLY valid JSON.
         ]
       },
       
-      "CRITICAL_RULE_FOR_ALTERNATIVES": "NEVER include the poison word or any variation of it in suggestions. If 'Metro' is the problem, do NOT suggest MetroLink, MetroMart, MetroZone, etc. Use completely different words like Urban, City, Central, District, etc.",
-      
       "competitor_analysis": {
           "x_axis_label": "Category-specific X-axis label (e.g., 'Price: Budget → Luxury')",
           "y_axis_label": "Category-specific Y-axis label (e.g., 'Style: Classic → Avant-Garde')",
