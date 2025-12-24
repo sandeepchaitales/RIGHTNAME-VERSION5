@@ -124,11 +124,11 @@ class UserBrandPosition(BaseModel):
 class CompetitorAnalysis(BaseModel):
     x_axis_label: Optional[str] = Field(default="Price: Low → High", description="X-axis label")
     y_axis_label: Optional[str] = Field(default="Quality: Basic → Premium", description="Y-axis label")
-    competitors: List[Competitor]
+    competitors: List[Competitor] = Field(default=[])
     user_brand_position: Optional[UserBrandPosition] = None
-    white_space_analysis: str
-    strategic_advantage: str
-    suggested_pricing: str
+    white_space_analysis: Optional[str] = Field(default="Analysis pending")
+    strategic_advantage: Optional[str] = Field(default="Analysis pending")
+    suggested_pricing: Optional[str] = Field(default="N/A")
 
 class Recommendation(BaseModel):
     title: str
