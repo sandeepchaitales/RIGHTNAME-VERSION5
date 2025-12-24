@@ -552,22 +552,21 @@ Return ONLY valid JSON.
           "user_customer_avatar": "Who buys the User's product (e.g., 'Startup founders, Brand consultants')",
           "phonetic_conflicts": [
               {
-                  "CRITICAL_CHECK": "MANDATORY: Search for phonetically similar names in SAME category!",
                   "input_name": "User's brand name",
                   "phonetic_variants": ["List 5+ spelling variants with same pronunciation"],
                   "ipa_pronunciation": "/IPA transcription/",
                   "found_conflict": {
-                      "name": "Phonetically similar app/brand found (e.g., UnQue for Unqueue)",
+                      "name": "Phonetically similar app/brand found",
                       "spelling_difference": "How it's spelled differently",
-                      "category": "Their category (MUST CHECK if same as user's)",
-                      "app_store_link": "Play Store or App Store URL",
+                      "category": "Their category",
+                      "app_store_link": "Play Store or App Store URL if available",
                       "downloads": "Download count or user base",
                       "company": "Company/developer name",
                       "is_active": true
                   },
-                  "conflict_type": "FATAL_PHONETIC_CONFLICT / NONE",
-                  "legal_risk": "HIGH - Passing-off, Consumer Confusion",
-                  "verdict_impact": "If same category + active business = REJECT"
+                  "conflict_type": "FATAL_PHONETIC_CONFLICT or NONE",
+                  "legal_risk": "HIGH or LOW",
+                  "verdict_impact": "REJECT if same category + active business, else note only"
               }
           ],
           "direct_competitors": [
