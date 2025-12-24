@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-const API_URL = `${BACKEND_URL}/api`;
+// Use relative URL for API calls so it works on any domain (custom domain or preview URL)
+const API_URL = '/api';
 
 export const api = {
     evaluate: async (data) => {
