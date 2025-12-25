@@ -27,9 +27,24 @@ class DomainAnalysis(BaseModel):
     risk_level: Optional[str] = Field(default="LOW", description="LOW/MEDIUM/HIGH - .com alone = LOW risk")
     has_active_business: Optional[str] = Field(default="UNKNOWN", description="Is there an operating business?")
     has_trademark: Optional[str] = Field(default="UNKNOWN", description="Is there a registered TM?")
-    alternatives: List[Dict[str, str]]
-    strategy_note: str
+    alternatives: List[Union[Dict[str, str], str]] = Field(default=[])
+    strategy_note: str = Field(default="")
     score_impact: Optional[str] = Field(default="-1 point max for taken .com", description="Score impact explanation")
+    
+    @field_validator('alternatives', mode='before')
+    @classmethod
+    def normalize_alternatives(cls, v):
+        """Handle both string and dict formats for domain alternatives"""
+        if not v:
+            return []
+        result = []
+        for item in v:
+            if isinstance(item, str):
+                # Convert string to dict format
+                result.append({"domain": item, "status": "suggested"})
+            elif isinstance(item, dict):
+                result.append(item)
+        return result
 
 class DomainCheckResult(BaseModel):
     domain: str
