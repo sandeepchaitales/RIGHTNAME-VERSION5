@@ -22,8 +22,23 @@ const AuthCallback = () => {
             if (sessionId) {
                 const user = await processSessionId(sessionId);
                 if (user) {
-                    // Navigate to home page with user data
-                    navigate('/', { state: { user }, replace: true });
+                    // Get the return URL from localStorage
+                    const returnUrl = localStorage.getItem('auth_return_url');
+                    localStorage.removeItem('auth_return_url');
+                    
+                    // If there's a saved report, go to dashboard
+                    const savedReport = localStorage.getItem('current_report');
+                    
+                    if (returnUrl && returnUrl.includes('/dashboard')) {
+                        // Return to dashboard - report data is in localStorage
+                        navigate('/dashboard', { replace: true });
+                    } else if (savedReport) {
+                        // There's a saved report, go to dashboard
+                        navigate('/dashboard', { replace: true });
+                    } else {
+                        // No saved report, go to landing page
+                        navigate('/', { state: { user }, replace: true });
+                    }
                 } else {
                     // Auth failed, go to landing
                     navigate('/', { replace: true });
