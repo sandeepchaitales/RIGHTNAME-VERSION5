@@ -120,10 +120,24 @@ class Competitor(BaseModel):
     y_coordinate: Optional[float] = Field(default=50, description="Y-axis position 0-100")
     price_position: Optional[str] = Field(default=None, description="Price positioning description")
     category_position: Optional[str] = Field(default=None, description="Category-specific positioning")
-    quadrant: str = Field(..., description="Quadrant Name")
+    quadrant: Optional[str] = Field(default="Center", description="Quadrant Name")
     # Legacy fields for backward compatibility
     price_axis: Optional[str] = Field(default=None, description="Legacy: X-Axis description")
     modernity_axis: Optional[str] = Field(default=None, description="Legacy: Y-Axis description")
+    
+    @field_validator('x_coordinate', 'y_coordinate', mode='before')
+    @classmethod
+    def parse_coordinate(cls, v):
+        if v is None or v == 'N/A' or v == 'n/a' or v == '':
+            return 50.0
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, str):
+            try:
+                return float(v)
+            except ValueError:
+                return 50.0
+        return 50.0
 
 class UserBrandPosition(BaseModel):
     x_coordinate: Optional[float] = Field(default=50, description="X-axis position 0-100")
