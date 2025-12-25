@@ -41,12 +41,38 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 const userData = await response.json();
                 setUser(userData);
+                localStorage.setItem('user_authenticated', 'true');
+                localStorage.setItem('user_data', JSON.stringify(userData));
             } else {
-                setUser(null);
+                // Check localStorage as fallback
+                const storedAuth = localStorage.getItem('user_authenticated');
+                const storedUser = localStorage.getItem('user_data');
+                if (storedAuth === 'true' && storedUser) {
+                    try {
+                        setUser(JSON.parse(storedUser));
+                    } catch {
+                        setUser(null);
+                        localStorage.removeItem('user_authenticated');
+                        localStorage.removeItem('user_data');
+                    }
+                } else {
+                    setUser(null);
+                }
             }
         } catch (error) {
             console.error('Auth check failed:', error);
-            setUser(null);
+            // Check localStorage as fallback
+            const storedAuth = localStorage.getItem('user_authenticated');
+            const storedUser = localStorage.getItem('user_data');
+            if (storedAuth === 'true' && storedUser) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch {
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
         } finally {
             setLoading(false);
         }
