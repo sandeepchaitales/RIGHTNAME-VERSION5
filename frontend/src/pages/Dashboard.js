@@ -614,59 +614,111 @@ const MarketIntelligenceSection = ({ domainAnalysis, visibilityAnalysis, cultura
                     <div className="bg-white rounded-2xl p-6 border border-slate-200">
                         <SubSectionHeader icon={Target} title="Conflict Relevance Analysis" />
                         
-                        {/* Summary */}
-                        <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 mb-4">
-                            <p className="text-lg font-bold text-emerald-700">
-                                {visibilityAnalysis.direct_conflicts_count || 0} direct competitors • {visibilityAnalysis.phonetic_conflicts_count || 0} phonetic conflicts
+                        {/* Summary - Show NO DIRECT CONFLICTS if both counts are 0 */}
+                        <div className={`p-4 rounded-xl border mb-4 ${
+                            (visibilityAnalysis.direct_competitors?.length || 0) === 0 && (visibilityAnalysis.phonetic_conflicts?.length || 0) === 0
+                                ? 'bg-emerald-50 border-emerald-200'
+                                : 'bg-amber-50 border-amber-200'
+                        }`}>
+                            <p className={`text-lg font-bold ${
+                                (visibilityAnalysis.direct_competitors?.length || 0) === 0 && (visibilityAnalysis.phonetic_conflicts?.length || 0) === 0
+                                    ? 'text-emerald-700'
+                                    : 'text-amber-700'
+                            }`}>
+                                {(visibilityAnalysis.direct_competitors?.length || 0) === 0 && (visibilityAnalysis.phonetic_conflicts?.length || 0) === 0
+                                    ? 'NO DIRECT CONFLICTS'
+                                    : `${visibilityAnalysis.direct_competitors?.length || 0} direct competitors • ${visibilityAnalysis.phonetic_conflicts?.length || 0} phonetic conflicts`
+                                }
                             </p>
-                            <p className="text-xs text-slate-600">All found name twins belong to different sectors.</p>
+                            <p className="text-sm text-slate-600 mt-1">
+                                {visibilityAnalysis.direct_competitors?.length || 0} direct competitors. {visibilityAnalysis.phonetic_conflicts?.length || 0} phonetic conflicts. {visibilityAnalysis.name_twins?.length || 0} name twins identified with distinct intents.
+                            </p>
                         </div>
                         
                         {/* Product Intent & Target Customer */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            {visibilityAnalysis.product_intent && (
+                            {(visibilityAnalysis.user_product_intent || visibilityAnalysis.product_intent) && (
                                 <div className="p-4 bg-violet-50 rounded-xl border border-violet-200">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Briefcase className="w-4 h-4 text-violet-600" />
                                         <p className="text-xs font-bold text-violet-700 uppercase">Your Product Intent</p>
                                     </div>
-                                    <p className="text-sm text-slate-700">{visibilityAnalysis.product_intent}</p>
+                                    <p className="text-sm text-slate-700">{visibilityAnalysis.user_product_intent || visibilityAnalysis.product_intent}</p>
                                 </div>
                             )}
-                            {visibilityAnalysis.target_customer && (
+                            {(visibilityAnalysis.user_customer_avatar || visibilityAnalysis.target_customer) && (
                                 <div className="p-4 bg-fuchsia-50 rounded-xl border border-fuchsia-200">
                                     <div className="flex items-center gap-2 mb-2">
                                         <UserCheck className="w-4 h-4 text-fuchsia-600" />
                                         <p className="text-xs font-bold text-fuchsia-700 uppercase">Your Target Customer</p>
                                     </div>
-                                    <p className="text-sm text-slate-700">{visibilityAnalysis.target_customer}</p>
+                                    <p className="text-sm text-slate-700">{visibilityAnalysis.user_customer_avatar || visibilityAnalysis.target_customer}</p>
                                 </div>
                             )}
                         </div>
                         
-                        {/* False Positives */}
-                        {visibilityAnalysis.false_positives?.length > 0 && (
+                        {/* Name Twins / False Positives - These are NOT conflicts */}
+                        {(visibilityAnalysis.name_twins?.length > 0 || visibilityAnalysis.false_positives?.length > 0) && (
                             <div>
                                 <p className="text-xs font-bold text-slate-500 uppercase mb-3">False Positives Filtered (Keyword Match Only)</p>
                                 <div className="space-y-3">
-                                    {visibilityAnalysis.false_positives.map((fp, i) => (
+                                    {(visibilityAnalysis.name_twins || visibilityAnalysis.false_positives || []).map((fp, i) => (
                                         <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                                             <div className="flex items-center justify-between mb-2">
                                                 <h5 className="font-bold text-slate-800">{fp.name}</h5>
                                                 <Badge className="bg-emerald-100 text-emerald-700">NOT A CONFLICT</Badge>
                                             </div>
-                                            <p className="text-xs text-slate-500 mb-2">{fp.category}</p>
-                                            <div className="grid grid-cols-2 gap-2 text-xs">
-                                                <div><strong>Their Intent:</strong> {fp.their_intent}</div>
-                                                <div><strong>Their Customers:</strong> {fp.their_customers}</div>
+                                            <p className="text-xs text-amber-600 mb-2">Different - {fp.category}</p>
+                                            
+                                            {/* Their Intent & Customers */}
+                                            <div className="space-y-2 text-xs bg-white p-3 rounded-lg border border-slate-100">
+                                                {(fp.their_product_intent || fp.their_intent) && (
+                                                    <div>
+                                                        <span className="font-bold text-slate-600">Their Intent:</span>{' '}
+                                                        <span className="text-slate-700">{fp.their_product_intent || fp.their_intent}</span>
+                                                    </div>
+                                                )}
+                                                {(fp.their_customer_avatar || fp.their_customers) && (
+                                                    <div>
+                                                        <span className="font-bold text-slate-600">Their Customers:</span>{' '}
+                                                        <span className="text-slate-700">{fp.their_customer_avatar || fp.their_customers}</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <p className="text-xs text-slate-600 mt-2 italic">{fp.conclusion}</p>
+                                            
+                                            {/* Intent Match & Customer Overlap */}
+                                            <div className="flex gap-4 mt-2 text-xs">
+                                                <div className="flex items-center gap-1">
+                                                    <span className="font-bold text-slate-500">Intent:</span>
+                                                    <Badge className={`text-xs ${fp.intent_match === 'SAME' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                        {fp.intent_match || 'DIFFERENT'}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <span className="font-bold text-slate-500">Customers:</span>
+                                                    <Badge className={`text-xs ${fp.customer_overlap === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                        {fp.customer_overlap || 'NONE'}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Conclusion/Reason */}
+                                            {(fp.reason || fp.conclusion) && (
+                                                <p className="text-xs text-slate-500 mt-2 italic">{fp.reason || fp.conclusion}</p>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
                                 <p className="mt-3 text-xs text-emerald-600 flex items-center gap-1">
                                     <CheckCircle className="w-3 h-3" /> These are keyword matches only - different intent/customers. NOT rejection factors.
                                 </p>
+                            </div>
+                        )}
+                        
+                        {/* Conflict Summary */}
+                        {visibilityAnalysis.conflict_summary && (
+                            <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                <p className="text-sm text-blue-800">{visibilityAnalysis.conflict_summary}</p>
                             </div>
                         )}
                     </div>
