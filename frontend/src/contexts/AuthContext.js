@@ -190,6 +190,9 @@ export const AuthProvider = ({ children }) => {
             
             if (response.ok) {
                 const userData = await response.json();
+                // Save auth status to localStorage for persistence
+                localStorage.setItem('user_authenticated', 'true');
+                localStorage.setItem('user_data', JSON.stringify(userData));
                 setUser(userData);
                 return userData;
             }
