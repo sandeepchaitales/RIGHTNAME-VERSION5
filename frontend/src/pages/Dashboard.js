@@ -110,11 +110,52 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, openAuthModal } = useAuth();
-  const { data, query } = location.state || {};
   const [scrolled, setScrolled] = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [queryData, setQueryData] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   // Check if user is authenticated
   const isAuthenticated = !!user;
+
+  // Load report data from location.state or localStorage
+  useEffect(() => {
+    const loadReportData = async () => {
+      // First, try to get from location.state
+      if (location.state?.data) {
+        setReportData(location.state.data);
+        setQueryData(location.state.query);
+        // Save to localStorage for persistence
+        localStorage.setItem('current_report', JSON.stringify(location.state.data));
+        localStorage.setItem('current_query', JSON.stringify(location.state.query));
+        if (location.state.data.report_id) {
+          localStorage.setItem('pending_report_id', location.state.data.report_id);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      // If no location.state, try localStorage
+      const savedReport = localStorage.getItem('current_report');
+      const savedQuery = localStorage.getItem('current_query');
+      
+      if (savedReport && savedQuery) {
+        try {
+          setReportData(JSON.parse(savedReport));
+          setQueryData(JSON.parse(savedQuery));
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error('Error parsing saved report:', e);
+        }
+      }
+      
+      // No data available
+      setLoading(false);
+    };
+    
+    loadReportData();
+  }, [location.state]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -124,18 +165,22 @@ const Dashboard = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Save report_id to localStorage if present
-  useEffect(() => {
-    if (data?.report_id) {
-        localStorage.setItem('pending_report_id', data.report_id);
-    }
-  }, [data?.report_id]);
-
   const handleRegister = () => {
-    openAuthModal(data?.report_id);
+    openAuthModal(reportData?.report_id);
   };
 
-  if (!data) {
+  if (loading) {
+    return (
+        <div className="min-h-screen flex items-center justify-center flex-col bg-slate-50">
+            <div className="p-8 bg-white rounded-2xl shadow-lg text-center">
+                <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <h2 className="text-xl font-bold text-slate-800">Loading Report...</h2>
+            </div>
+        </div>
+    );
+  }
+
+  if (!reportData) {
     return (
         <div className="min-h-screen flex items-center justify-center flex-col bg-slate-50">
             <div className="p-8 bg-white rounded-2xl shadow-lg text-center">
@@ -146,6 +191,8 @@ const Dashboard = () => {
     );
   }
 
+  const data = reportData;
+  const query = queryData || {};
   const activeBrand = data.brand_scores[0]; 
 
   // Teaser texts for locked sections
