@@ -775,17 +775,17 @@ const LegalRiskMatrix = ({ trademarkMatrix, trademarkClasses }) => {
     
     const getZoneColor = (zone) => {
         const z = (zone || '').toLowerCase();
-        if (z.includes('low')) return 'bg-emerald-100 text-emerald-700';
-        if (z.includes('medium')) return 'bg-amber-100 text-amber-700';
+        if (z.includes('green') || z.includes('low')) return 'bg-emerald-100 text-emerald-700';
+        if (z.includes('yellow') || z.includes('medium')) return 'bg-amber-100 text-amber-700';
         return 'bg-red-100 text-red-700';
     };
     
     const risks = [
         { key: 'genericness', label: 'Genericness', data: trademarkMatrix.genericness },
-        { key: 'existing_conflicts', label: 'Conflicts', data: trademarkMatrix.existing_conflicts },
-        { key: 'phonetic_similarity', label: 'Phonetic', data: trademarkMatrix.phonetic_similarity },
-        { key: 'class_crowding', label: 'Classes', data: trademarkMatrix.class_crowding },
-        { key: 'rebranding_probability', label: 'Rebranding', data: trademarkMatrix.rebranding_probability },
+        { key: 'existing_conflicts', label: 'Existing Conflicts', data: trademarkMatrix.existing_conflicts },
+        { key: 'phonetic_similarity', label: 'Phonetic Similarity', data: trademarkMatrix.phonetic_similarity },
+        { key: 'relevant_classes', label: 'Relevant Classes', data: trademarkMatrix.relevant_classes },
+        { key: 'rebranding_probability', label: 'Rebranding Probability', data: trademarkMatrix.rebranding_probability },
     ].filter(r => r.data);
     
     return (
@@ -800,7 +800,7 @@ const LegalRiskMatrix = ({ trademarkMatrix, trademarkClasses }) => {
                             <thead>
                                 <tr className="bg-slate-50">
                                     <th className="text-left p-3 font-bold text-slate-700">Risk Factor</th>
-                                    <th className="text-center p-3 font-bold text-slate-700">Probability</th>
+                                    <th className="text-center p-3 font-bold text-slate-700">Likelihood</th>
                                     <th className="text-center p-3 font-bold text-slate-700">Severity</th>
                                     <th className="text-center p-3 font-bold text-slate-700">Zone</th>
                                     <th className="text-left p-3 font-bold text-slate-700">Mitigation Strategy</th>
@@ -812,7 +812,7 @@ const LegalRiskMatrix = ({ trademarkMatrix, trademarkClasses }) => {
                                         <td className="p-3 font-semibold text-slate-800">{risk.label}</td>
                                         <td className="p-3 text-center">
                                             <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 font-bold">
-                                                {risk.data.probability}/10
+                                                {risk.data.likelihood || risk.data.probability}/10
                                             </span>
                                         </td>
                                         <td className="p-3 text-center">
@@ -823,7 +823,7 @@ const LegalRiskMatrix = ({ trademarkMatrix, trademarkClasses }) => {
                                         <td className="p-3 text-center">
                                             <Badge className={getZoneColor(risk.data.zone)}>{risk.data.zone}</Badge>
                                         </td>
-                                        <td className="p-3 text-xs text-slate-600">{risk.data.mitigation}</td>
+                                        <td className="p-3 text-xs text-slate-600">{risk.data.commentary || risk.data.mitigation || 'No specific mitigation required'}</td>
                                     </tr>
                                 ))}
                             </tbody>
