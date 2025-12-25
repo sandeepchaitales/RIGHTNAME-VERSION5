@@ -54,6 +54,11 @@ export const AuthProvider = ({ children }) => {
 
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const loginWithGoogle = () => {
+        // Save current location to return to after auth
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/' && currentPath !== '/auth/callback') {
+            localStorage.setItem('auth_return_url', currentPath);
+        }
         const redirectUrl = window.location.origin + '/auth/callback';
         window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
     };
