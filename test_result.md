@@ -165,6 +165,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "Dashboard successfully displays analysis results including Executive Summary, Verdict, Score, and all sections"
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed Legal Risk Matrix - now properly reads 'likelihood' field (was looking for 'probability'), and displays 'commentary' field as mitigation strategy. Fixed Social Handles - now shows ALL platforms with their status (Available/Taken/Error/Unsupported), not just available ones. Added count badges showing total available vs taken handles."
 
   - task: "PDF Export"
     implemented: true
