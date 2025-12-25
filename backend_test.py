@@ -257,14 +257,20 @@ class BrandEvaluationTester:
                 timeout=120  # LLM calls can take time
             )
             
+            print(f"Response Status: {response.status_code}")
+            
             if response.status_code == 200:
                 try:
                     data = response.json()
+                    print(f"Response keys: {list(data.keys())}")
+                    
                     if "report_id" in data:
                         self.test_report_id = data["report_id"]
                         self.log_test("Generate Report with Auth", True, f"Report generated: {self.test_report_id}")
                         return True
                     else:
+                        # Check if we can find report_id in nested structure
+                        print(f"Full response structure: {json.dumps(data, indent=2)[:500]}...")
                         self.log_test("Generate Report with Auth", False, "No report_id in response")
                         return False
                         
