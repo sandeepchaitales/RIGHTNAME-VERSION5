@@ -666,6 +666,11 @@ class BrandEvaluationTester:
         # Test main evaluate endpoint
         self.test_evaluate_endpoint_structure()
         
+        # Test trademark research functionality
+        print("\n🔍 Testing Trademark Research Feature...")
+        self.test_trademark_research_luminara()
+        self.test_trademark_research_nexofy()
+        
         # Test auth endpoints
         print("\n🔐 Testing Authentication Endpoints...")
         
