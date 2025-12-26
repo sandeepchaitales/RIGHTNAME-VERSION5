@@ -1924,6 +1924,10 @@ class BrandEvaluationTester:
         print("\n🔧 PRIORITY TEST: Testing score_impact validation fix...")
         self.test_score_impact_validation_fix()
         
+        # PRIORITY: Test fallback model feature (as per review request)
+        print("\n🔄 PRIORITY TEST: Testing fallback model feature...")
+        self.test_fallback_model_feature()
+        
         # Test main evaluate endpoint
         self.test_evaluate_endpoint_structure()
         
