@@ -698,36 +698,36 @@ Return ONLY valid JSON.
       },
 
       "registration_timeline": {
-          "estimated_duration": "12-18 months",
+          "estimated_duration": "12-18 months (varies by country)",
           "stages": [
               {"stage": "Examination by Registrar", "duration": "3-6 months", "risk": "Objections possible"},
               {"stage": "Publication in Trademark Journal", "duration": "Upon passing exam", "risk": "Public visibility"},
               {"stage": "Opposition Period", "duration": "4 months", "risk": "HIGH - Competitors can oppose"},
               {"stage": "Registration", "duration": "Upon approval", "risk": "Exclusive rights granted"}
           ],
-          "filing_cost": "₹4,500-9,000 (Startup/Company)",
-          "opposition_defense_cost": "₹50,000-200,000 if contested",
-          "total_estimated_cost": "₹15,000-250,000 depending on opposition"
+          "filing_cost": "[USE CORRECT CURRENCY BASED ON TARGET COUNTRIES - e.g., $275-400 for USA, ₹4,500-9,000 for India, £170-300 for UK]",
+          "opposition_defense_cost": "[USE CORRECT CURRENCY - e.g., $5,000-25,000 for USA, ₹50,000-200,000 for India]",
+          "total_estimated_cost": "[USE CORRECT CURRENCY - Sum of filing + potential opposition costs]"
       },
 
       "mitigation_strategies": [
           {
               "priority": "HIGH",
-              "action": "Conduct formal trademark search with IP India before filing",
+              "action": "Conduct formal trademark search with [USPTO/IP India/EUIPO based on target country] before filing",
               "rationale": "Identify all potential conflicts before investment",
-              "estimated_cost": "₹3,000-5,000"
+              "estimated_cost": "[USE CORRECT CURRENCY - e.g., $500-1,500 for USA, ₹3,000-5,000 for India]"
           },
           {
               "priority": "HIGH", 
               "action": "Develop distinctive visual identity/logo",
               "rationale": "Strong design can offset wordmark similarity",
-              "estimated_cost": "₹10,000-50,000"
+              "estimated_cost": "[USE CORRECT CURRENCY - e.g., $2,000-10,000 for USA, ₹10,000-50,000 for India]"
           },
           {
               "priority": "MEDIUM",
               "action": "Consider co-existence agreement with similar mark holders",
               "rationale": "Negotiate market/geographic boundaries",
-              "estimated_cost": "₹50,000-200,000"
+              "estimated_cost": "[USE CORRECT CURRENCY - e.g., $5,000-50,000 for USA, ₹50,000-200,000 for India]"
           }
       ],
 
