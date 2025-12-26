@@ -54,6 +54,64 @@ app = FastAPI()
 # Router
 api_router = APIRouter(prefix="/api")
 
+# Country to currency mapping
+COUNTRY_CURRENCY_MAP = {
+    "USA": "USD ($)",
+    "United States": "USD ($)",
+    "India": "INR (₹)",
+    "UK": "GBP (£)",
+    "United Kingdom": "GBP (£)",
+    "Germany": "EUR (€)",
+    "France": "EUR (€)",
+    "Italy": "EUR (€)",
+    "Spain": "EUR (€)",
+    "Netherlands": "EUR (€)",
+    "Belgium": "EUR (€)",
+    "Austria": "EUR (€)",
+    "Ireland": "EUR (€)",
+    "Portugal": "EUR (€)",
+    "Greece": "EUR (€)",
+    "Finland": "EUR (€)",
+    "Japan": "JPY (¥)",
+    "China": "CNY (¥)",
+    "Canada": "CAD (C$)",
+    "Australia": "AUD (A$)",
+    "Singapore": "SGD (S$)",
+    "UAE": "AED (د.إ)",
+    "United Arab Emirates": "AED (د.إ)",
+    "Saudi Arabia": "SAR (ر.س)",
+    "South Korea": "KRW (₩)",
+    "Brazil": "BRL (R$)",
+    "Mexico": "MXN ($)",
+    "Switzerland": "CHF (Fr)",
+    "Sweden": "SEK (kr)",
+    "Norway": "NOK (kr)",
+    "Denmark": "DKK (kr)",
+    "Poland": "PLN (zł)",
+    "Russia": "RUB (₽)",
+    "South Africa": "ZAR (R)",
+    "New Zealand": "NZD (NZ$)",
+    "Thailand": "THB (฿)",
+    "Malaysia": "MYR (RM)",
+    "Indonesia": "IDR (Rp)",
+    "Philippines": "PHP (₱)",
+    "Vietnam": "VND (₫)",
+    "Hong Kong": "HKD (HK$)",
+    "Taiwan": "TWD (NT$)",
+    "Israel": "ILS (₪)",
+    "Turkey": "TRY (₺)",
+    "Egypt": "EGP (E£)",
+    "Nigeria": "NGN (₦)",
+    "Kenya": "KES (KSh)",
+    "Pakistan": "PKR (₨)",
+    "Bangladesh": "BDT (৳)",
+    "Global": "USD ($)",
+}
+
+def get_country_currency(country: str) -> str:
+    """Get the currency for a given country. Defaults to USD for unknown countries."""
+    return COUNTRY_CURRENCY_MAP.get(country, "USD ($)")
+
 def check_domain_availability(brand_name: str) -> str:
     domain = f"{brand_name.lower().replace(' ', '')}.com"
     try:
