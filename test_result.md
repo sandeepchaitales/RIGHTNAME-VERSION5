@@ -122,6 +122,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ CURRENCY LOGIC TESTING COMPLETED: All 3 test cases passed with 100% success rate. Test Case 1 (USA Single Country): All costs correctly in USD ($). Test Case 2 (India Single Country): All costs correctly in INR (₹). Test Case 3 (Multiple Countries USA/India/UK): All costs correctly in USD ($) as expected for multi-country. Verified: registration_timeline.filing_cost, registration_timeline.opposition_defense_cost, mitigation_strategies[].estimated_cost all use correct currency. No currency mixing detected. Currency mapping logic working perfectly."
+      - working: true
+        agent: "testing"
+        comment: "✅ QUICKTEST SMOKE TEST COMPLETED: API connectivity verified - basic endpoint responds with 200 OK and proper JSON. Backend logs show successful processing: trademark research (Risk 1/10, 0 conflicts), visibility analysis, domain checks, and LLM integration working. However, /api/evaluate endpoint has extended response times (300+ seconds) due to comprehensive real-time web searches and LLM processing. Schema validation appears fixed - no validation errors detected in processing. API is functional but requires patience for full evaluation completion."
 
   - task: "Domain Availability Check (whois)"
     implemented: true
