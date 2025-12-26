@@ -125,6 +125,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ QUICKTEST SMOKE TEST COMPLETED: API connectivity verified - basic endpoint responds with 200 OK and proper JSON. Backend logs show successful processing: trademark research (Risk 1/10, 0 conflicts), visibility analysis, domain checks, and LLM integration working. However, /api/evaluate endpoint has extended response times (300+ seconds) due to comprehensive real-time web searches and LLM processing. Schema validation appears fixed - no validation errors detected in processing. API is functional but requires patience for full evaluation completion."
+      - working: true
+        agent: "testing"
+        comment: "✅ SCORE_IMPACT VALIDATION FIX VERIFIED: Tested specific fix for score_impact validation error with TestFix brand. API returned 200 OK with valid response (NameScore: 83.0, Verdict: GO). score_impact field present and properly formatted as string: '-1 point max for taken .com. Prioritize category TLDs (.tech) over .com'. No validation errors detected in response or backend logs. Fix is working correctly."
 
   - task: "Domain Availability Check (whois)"
     implemented: true
