@@ -324,6 +324,10 @@ def check_brand_similarity(
         if key.lower() in industry.lower() or key.lower() in category.lower():
             brands_to_check.update(brands)
     
+    # Special handling for social media
+    if "social" in category.lower() or "media" in category.lower() or "platform" in category.lower():
+        brands_to_check.update(KNOWN_BRANDS.get("Social Media & Platforms", []))
+    
     # Add general/famous brands
     brands_to_check.update(KNOWN_BRANDS.get("General", []))
     brands_to_check.update(GLOBAL_FAMOUS_BRANDS)
