@@ -1,46 +1,35 @@
 {
+  "test_focus": "Currency Logic Testing",
   "summary": {
-    "tests_run": 6,
-    "tests_passed": 3,
-    "success_rate": 50.0
+    "tests_run": 4,
+    "tests_passed": 4,
+    "success_rate": 100.0
   },
   "results": [
     {
       "test": "API Health Check",
       "success": true,
       "details": "Status: 200, Response: {\"message\":\"RightName API is running\"}",
-      "timestamp": "2025-12-26T16:42:47.381520"
+      "timestamp": "2025-12-26T17:10:44.260626"
     },
     {
-      "test": "Emergent LLM Key - Budget Error",
-      "success": false,
-      "details": "Budget-related error: HTTP 422: {\"detail\":[{\"type\":\"literal_error\",\"loc\":[\"body\",\"positioning\"],\"msg\":\"Input should be 'Budget', 'Mid-Range', 'Premium', 'Luxury', 'Mass' or 'Ultra-Premium'\",\"input\":\"Premium software solutions\",\"ctx\":{\"expected\":\"'Budget', 'Mid-Range', 'Premium', 'Luxury', 'Mass' or 'Ultra-Premium'\"},\"url\":\"https:/",
-      "timestamp": "2025-12-26T16:42:47.420236"
-    },
-    {
-      "test": "Evaluate Endpoint - Structure",
+      "test": "Currency Test - USA Single Country",
       "success": true,
-      "details": "All required fields present, Astra NameScore: 15.0",
-      "timestamp": "2025-12-26T16:43:39.595490"
+      "details": "All costs correctly in USD ($)",
+      "timestamp": "2025-12-26T17:13:39.276595"
     },
     {
-      "test": "Trademark Research - Luminara Complete",
+      "test": "Currency Test - India Single Country",
       "success": true,
-      "details": "All checks passed. Risk: 7/10, TM conflicts: 1, Company conflicts: 1, Legal precedents: 1",
-      "timestamp": "2025-12-26T16:44:48.154382"
+      "details": "All costs correctly in INR (\u20b9)",
+      "timestamp": "2025-12-26T17:14:33.608581"
     },
     {
-      "test": "Trademark Research - Nexofy Timeout",
-      "success": false,
-      "details": "Request timed out after 180 seconds",
-      "timestamp": "2025-12-26T16:47:48.334278"
-    },
-    {
-      "test": "Auth Register",
-      "success": false,
-      "details": "HTTPSConnectionPool(host='trademark-research.preview.emergentagent.com', port=443): Read timed out. (read timeout=10)",
-      "timestamp": "2025-12-26T16:47:58.400009"
+      "test": "Currency Test - Multiple Countries",
+      "success": true,
+      "details": "All costs correctly in USD ($) for multi-country",
+      "timestamp": "2025-12-26T17:15:36.228977"
     }
   ],
-  "timestamp": "2025-12-26T16:47:58.401147"
+  "timestamp": "2025-12-26T17:15:36.229110"
 }
