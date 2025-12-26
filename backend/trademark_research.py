@@ -841,15 +841,8 @@ async def conduct_trademark_research(
     countries: List[str]
 ) -> TrademarkResearchResult:
     """
-    Conduct comprehensive trademark research for a brand name.
-    
-    This function:
-    1. Checks known trademark data cache
-    2. Generates strategic search queries
-    3. Executes web searches in parallel
-    4. Extracts structured conflict data
-    5. Calculates risk scores
-    6. Returns a comprehensive research result
+    Conduct trademark research for a brand name.
+    Optimized for speed - uses known data cache primarily.
     """
     logger.info(f"Starting trademark research for '{brand_name}' in {industry}/{category}")
     
@@ -864,7 +857,7 @@ async def conduct_trademark_research(
     # Get Nice Classification
     result.nice_classification = get_nice_classification(category, industry)
     
-    # Step 1: Check known data cache first
+    # Step 1: Check known data cache first (FAST)
     known_data = get_known_data(brand_name)
     
     if known_data:
@@ -902,41 +895,20 @@ async def conduct_trademark_research(
         # Add common law conflicts
         result.common_law_conflicts = known_data.get("common_law", [])
     
-    # Step 2: Generate search queries
-    queries = generate_search_queries(brand_name, industry, category, countries)
-    logger.info(f"Generated {len(queries)} search queries")
+    # Step 2: Quick web search (limited to 3 queries for speed)
+    queries = generate_search_queries(brand_name, industry, category, countries)[:3]  # Only first 3 queries
     
-    # Step 3: Execute searches in parallel (batch of 5 at a time)
     all_search_results = []
-    batch_size = 5
-    
-    for i in range(0, len(queries), batch_size):
-        batch = queries[i:i + batch_size]
-        tasks = [execute_web_search(q["query"]) for q in batch]
-        
+    for q in queries:
         try:
-            batch_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
-            for j, results in enumerate(batch_results):
-                if isinstance(results, Exception):
-                    logger.warning(f"Search failed: {str(results)}")
-                    continue
-                
-                query_info = batch[j]
-                for r in results:
-                    r["query_purpose"] = query_info["purpose"]
-                all_search_results.extend(results if not isinstance(results, Exception) else [])
-        
+            search_results = await execute_web_search(q["query"])
+            for r in search_results:
+                r["query_purpose"] = q["purpose"]
+            all_search_results.extend(search_results)
         except Exception as e:
-            logger.error(f"Batch search failed: {str(e)}")
-        
-        # Small delay between batches
-        if i + batch_size < len(queries):
-            await asyncio.sleep(0.5)
+            logger.warning(f"Search failed: {str(e)}")
     
-    logger.info(f"Collected {len(all_search_results)} search results")
-    
-    # Step 4: Extract additional conflicts from search results
+    # Step 3: Extract conflicts from search results
     search_tm_conflicts = extract_trademark_conflicts(all_search_results, brand_name)
     search_co_conflicts = extract_company_conflicts(all_search_results, brand_name)
     
@@ -948,6 +920,40 @@ async def conduct_trademark_research(
             existing_tm_names.add(c.name.lower())
     
     existing_co_names = {c.name.lower() for c in result.company_conflicts}
+    for c in search_co_conflicts:
+        if c.name.lower() not in existing_co_names:
+            result.company_conflicts.append(c)
+            existing_co_names.add(c.name.lower())
+    
+    # Step 4: Add relevant legal precedents
+    precedents = get_relevant_precedents(category, industry)
+    for p in precedents:
+        result.legal_precedents.append(LegalPrecedent(
+            case_name=p.get("case_name", ""),
+            court=p.get("court"),
+            year=p.get("year"),
+            relevance=p.get("relevance", ""),
+            key_principle=p.get("key_principle")
+        ))
+    
+    # Step 5: Calculate risk scores
+    risk_scores = calculate_risk_scores(
+        result.trademark_conflicts,
+        result.company_conflicts,
+        result.common_law_conflicts
+    )
+    
+    result.overall_risk_score = risk_scores["overall_risk_score"]
+    result.registration_success_probability = risk_scores["registration_success_probability"]
+    result.opposition_probability = risk_scores["opposition_probability"]
+    result.critical_conflicts_count = risk_scores["critical_conflicts_count"]
+    result.high_risk_conflicts_count = risk_scores["high_risk_conflicts_count"]
+    result.total_conflicts_found = risk_scores["total_conflicts_found"]
+    
+    logger.info(f"Trademark research complete. Risk score: {result.overall_risk_score}/10, "
+                f"Conflicts found: {result.total_conflicts_found}")
+    
+    return result
     for c in search_co_conflicts:
         if c.name.lower() not in existing_co_names:
             result.company_conflicts.append(c)
