@@ -201,9 +201,7 @@ const CoverPage = ({ brandName, score, verdict, date, query, reportId }) => {
                             <tr>
                                 <td className="px-4 py-2 text-slate-500 font-medium">Target Countries</td>
                                 <td className="px-4 py-2 text-slate-900 font-semibold text-right">
-                                    {query?.countries?.map((c, i) => (
-                                        <span key={i}>{getCountryFlag(c)} {c}{i < query.countries.length - 1 ? ', ' : ''}</span>
-                                    )) || 'Not specified'}
+                                    {formatCountriesWithFlags(query?.countries)}
                                 </td>
                             </tr>
                         </tbody>
