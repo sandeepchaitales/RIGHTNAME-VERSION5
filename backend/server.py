@@ -1225,6 +1225,10 @@ async def evaluate_brands(request: BrandEvaluationRequest):
     - white_space_analysis: market gap in that specific country
     - strategic_advantage: competitive advantage in that market
     - market_entry_recommendation: specific advice for entering that country
+    
+    {competitors_context}
+    {keywords_context}
+    {problem_context}
     """
     
     max_retries = 3
