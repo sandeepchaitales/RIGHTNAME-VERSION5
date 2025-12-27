@@ -19,6 +19,130 @@ import {
 // RIGHTNAME Logo URL
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_38043537-e3af-491b-9b60-3b8b2372877a/artifacts/9yz5wf80_rightname.ai%20logo%20%281%29.png";
 
+// ============ COUNTRY MAP ICONS (SVG Silhouettes) ============
+const CountryMapIcon = ({ country, className = "w-5 h-4" }) => {
+    const maps = {
+        'USA': (
+            <svg viewBox="0 0 100 60" className={className} fill="currentColor">
+                <path d="M2,25 L5,20 L10,22 L15,18 L20,20 L25,15 L30,18 L35,15 L40,12 L45,15 L50,12 L55,15 L60,10 L65,15 L70,12 L75,15 L80,18 L85,15 L90,20 L95,18 L98,25 L95,30 L98,35 L95,40 L90,38 L85,42 L80,40 L75,45 L70,42 L65,45 L60,48 L55,45 L50,48 L45,45 L40,48 L35,45 L30,42 L25,45 L20,42 L15,45 L10,42 L5,45 L2,40 L5,35 L2,30 Z"/>
+            </svg>
+        ),
+        'United States': (
+            <svg viewBox="0 0 100 60" className={className} fill="currentColor">
+                <path d="M2,25 L5,20 L10,22 L15,18 L20,20 L25,15 L30,18 L35,15 L40,12 L45,15 L50,12 L55,15 L60,10 L65,15 L70,12 L75,15 L80,18 L85,15 L90,20 L95,18 L98,25 L95,30 L98,35 L95,40 L90,38 L85,42 L80,40 L75,45 L70,42 L65,45 L60,48 L55,45 L50,48 L45,45 L40,48 L35,45 L30,42 L25,45 L20,42 L15,45 L10,42 L5,45 L2,40 L5,35 L2,30 Z"/>
+            </svg>
+        ),
+        'India': (
+            <svg viewBox="0 0 60 80" className={className} fill="currentColor">
+                <path d="M30,2 L40,8 L48,15 L52,25 L55,35 L52,45 L48,55 L42,65 L35,72 L30,78 L25,72 L18,65 L12,55 L8,45 L5,35 L8,25 L12,15 L20,8 Z"/>
+            </svg>
+        ),
+        'Japan': (
+            <svg viewBox="0 0 40 90" className={className} fill="currentColor">
+                <path d="M20,2 L28,8 L32,18 L35,28 L32,38 L28,45 L32,52 L35,62 L32,72 L25,82 L20,88 L15,82 L8,72 L5,62 L8,52 L12,45 L8,38 L5,28 L8,18 L12,8 Z"/>
+            </svg>
+        ),
+        'UK': (
+            <svg viewBox="0 0 50 80" className={className} fill="currentColor">
+                <path d="M25,2 L35,10 L40,20 L38,30 L42,35 L45,45 L42,55 L38,62 L35,70 L25,78 L15,70 L12,62 L8,55 L5,45 L8,35 L12,30 L10,20 L15,10 Z"/>
+            </svg>
+        ),
+        'United Kingdom': (
+            <svg viewBox="0 0 50 80" className={className} fill="currentColor">
+                <path d="M25,2 L35,10 L40,20 L38,30 L42,35 L45,45 L42,55 L38,62 L35,70 L25,78 L15,70 L12,62 L8,55 L5,45 L8,35 L12,30 L10,20 L15,10 Z"/>
+            </svg>
+        ),
+        'Germany': (
+            <svg viewBox="0 0 60 70" className={className} fill="currentColor">
+                <path d="M30,2 L45,10 L55,25 L55,45 L45,60 L30,68 L15,60 L5,45 L5,25 L15,10 Z"/>
+            </svg>
+        ),
+        'France': (
+            <svg viewBox="0 0 60 65" className={className} fill="currentColor">
+                <path d="M30,2 L48,8 L55,25 L52,42 L45,55 L30,63 L15,55 L8,42 L5,25 L12,8 Z"/>
+            </svg>
+        ),
+        'Canada': (
+            <svg viewBox="0 0 100 50" className={className} fill="currentColor">
+                <path d="M5,25 L15,15 L30,12 L45,8 L55,12 L70,8 L85,12 L95,20 L95,35 L85,42 L70,45 L55,42 L45,45 L30,42 L15,38 L5,30 Z"/>
+            </svg>
+        ),
+        'Australia': (
+            <svg viewBox="0 0 90 70" className={className} fill="currentColor">
+                <path d="M10,20 L25,12 L45,8 L65,12 L80,20 L88,35 L85,50 L70,60 L50,65 L30,60 L15,50 L8,35 Z"/>
+            </svg>
+        ),
+        'China': (
+            <svg viewBox="0 0 90 70" className={className} fill="currentColor">
+                <path d="M10,25 L25,10 L45,5 L65,8 L80,18 L88,32 L85,48 L75,58 L55,65 L35,62 L18,52 L8,38 Z"/>
+            </svg>
+        ),
+        'Singapore': (
+            <svg viewBox="0 0 50 35" className={className} fill="currentColor">
+                <path d="M10,17 L20,8 L35,8 L45,17 L40,28 L25,32 L10,28 Z"/>
+            </svg>
+        ),
+        'UAE': (
+            <svg viewBox="0 0 70 40" className={className} fill="currentColor">
+                <path d="M5,20 L20,10 L40,8 L60,12 L68,22 L60,32 L40,35 L20,32 L8,25 Z"/>
+            </svg>
+        ),
+        'Brazil': (
+            <svg viewBox="0 0 70 80" className={className} fill="currentColor">
+                <path d="M35,2 L55,15 L65,35 L60,55 L45,70 L35,78 L25,70 L10,55 L5,35 L15,15 Z"/>
+            </svg>
+        ),
+        'Mexico': (
+            <svg viewBox="0 0 80 60" className={className} fill="currentColor">
+                <path d="M10,20 L30,8 L55,5 L75,15 L78,30 L70,45 L50,55 L30,52 L15,42 L5,30 Z"/>
+            </svg>
+        ),
+        'South Korea': (
+            <svg viewBox="0 0 45 55" className={className} fill="currentColor">
+                <path d="M22,2 L35,12 L42,28 L38,42 L28,52 L18,52 L8,42 L4,28 L10,12 Z"/>
+            </svg>
+        ),
+        'Italy': (
+            <svg viewBox="0 0 35 85" className={className} fill="currentColor">
+                <path d="M18,2 L28,12 L32,28 L28,45 L22,60 L18,75 L14,82 L10,75 L8,60 L12,45 L8,28 L12,12 Z"/>
+            </svg>
+        ),
+        'Spain': (
+            <svg viewBox="0 0 70 55" className={className} fill="currentColor">
+                <path d="M10,22 L25,10 L45,8 L60,15 L68,28 L62,42 L45,50 L25,48 L10,38 L5,28 Z"/>
+            </svg>
+        ),
+        'Netherlands': (
+            <svg viewBox="0 0 45 50" className={className} fill="currentColor">
+                <path d="M22,2 L38,15 L42,32 L35,45 L22,50 L10,45 L4,32 L8,15 Z"/>
+            </svg>
+        ),
+        'Switzerland': (
+            <svg viewBox="0 0 50 40" className={className} fill="currentColor">
+                <path d="M25,2 L42,12 L48,25 L42,35 L25,42 L8,35 L2,25 L8,12 Z"/>
+            </svg>
+        )
+    };
+
+    // Default globe icon for unknown countries
+    const defaultGlobe = (
+        <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+    );
+
+    return maps[country] || defaultGlobe;
+};
+
+// Helper function to format countries with map icons (for use in JSX)
+const CountryWithIcon = ({ country, className = "" }) => (
+    <span className={`inline-flex items-center gap-1 ${className}`}>
+        <CountryMapIcon country={country} className="w-4 h-3 text-slate-600" />
+        <span>{country}</span>
+    </span>
+);
+
 // ============ PRINT-SAFE CARD WRAPPER ============
 const PrintCard = ({ children, className = "" }) => (
     <div className={`print-card break-inside-avoid ${className}`}>
