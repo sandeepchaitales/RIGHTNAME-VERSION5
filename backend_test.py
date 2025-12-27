@@ -1436,6 +1436,8 @@ class BrandEvaluationTester:
             "product_keywords": ["UPI", "wallet", "payments"],
             "category": "Fintech",
             "industry": "Finance",
+            "positioning": "Premium",
+            "market_scope": "Single Country",
             "countries": ["India"]
         }
         
