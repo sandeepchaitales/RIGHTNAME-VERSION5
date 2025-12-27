@@ -683,6 +683,7 @@ FAMOUS_BRANDS = {
     "visa", "mastercard", "american express", "paypal", "stripe", "square", "venmo",
     "chase", "bank of america", "wells fargo", "citibank", "goldman sachs", "morgan stanley",
     "phonepe", "paytm", "google pay", "gpay", "razorpay", "cred", "groww", "zerodha", "upstox",
+    "mobikwik", "freecharge", "bhim", "amazon pay", "airtel money", "jio money", "ola money",
     # Beauty & Personal Care
     "loreal", "maybelline", "mac", "sephora", "ulta", "estee lauder", "clinique",
     "neutrogena", "dove", "pantene", "head shoulders", "gillette", "olay",
