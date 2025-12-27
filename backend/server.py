@@ -720,240 +720,169 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
     """
     LAYER 0: Dynamic Search-Based Brand Detection
     
-    This function:
-    1. Searches the web for the brand name AND category
-    2. Generates phonetic variants and searches for those too
-    3. Analyzes results to detect if brand OR SIMILAR brand exists
+    STRATEGY:
+    1. Search for TOP brands/apps in the user's CATEGORY
+    2. Extract competitor names from search results
+    3. Compare user's brand name against EACH competitor phonetically
+    4. If similar to any competitor → REJECT
     
-    Returns detection result with confidence level.
+    NO STATIC LIST - everything is dynamic!
     """
     import re
-    import httpx
     
-    logging.info(f"🔍 DYNAMIC SEARCH: Checking if '{brand_name}' exists in market...")
+    logging.info(f"🔍 DYNAMIC SEARCH: Checking '{brand_name}' against competitors in '{category}'...")
     
     result = {
         "exists": False,
         "confidence": "LOW",
         "matched_brand": None,
         "evidence": [],
-        "search_results": [],
+        "competitors_found": [],
         "reason": ""
     }
     
-    # Normalize brand name for comparison
+    # Normalize brand name
     brand_lower = brand_name.lower().strip()
     brand_normalized = re.sub(r'[^a-z0-9]', '', brand_lower)
     brand_dedupe = re.sub(r'(.)\1+', r'\1', brand_normalized)
-    brand_singular = brand_normalized.rstrip('s') if len(brand_normalized) > 3 else brand_normalized
     
-    # Generate phonetic variants for the brand
-    def generate_search_variants(name):
-        """Generate phonetic variants to search for similar brands"""
-        variants = [name]
-        name_lower = name.lower().replace(" ", "")
+    def extract_brand_names_from_html(html_content):
+        """Extract potential brand/company names from search results"""
+        names = set()
         
-        # Remove doubled letters
-        dedupe = re.sub(r'(.)\1+', r'\1', name_lower)
-        if dedupe != name_lower:
-            variants.append(dedupe)
+        # Pattern 1: Extract from domains (e.g., bumble.com, tinder.com)
+        domains = re.findall(r'https?://(?:www\.)?([a-z0-9]+)\.(?:com|in|co|app|io)', html_content.lower())
+        names.update(domains)
         
-        # Common letter substitutions
-        subs = [
-            ('ll', 'l'), ('l', 'll'),
-            ('bb', 'b'), ('b', 'bb'),
-            ('tt', 't'), ('t', 'tt'),
-            ('ee', 'e'), ('e', 'ee'),
-            ('oo', 'o'), ('o', 'oo'),
-            ('ph', 'f'), ('f', 'ph'),
-            ('ck', 'k'), ('k', 'ck'),
-            ('z', 's'), ('s', 'z'),
-        ]
-        for old, new in subs:
-            if old in name_lower:
-                variants.append(name_lower.replace(old, new))
+        # Pattern 2: Extract capitalized words (likely brand names)
+        caps = re.findall(r'\b([A-Z][a-z]{2,15})\b', html_content)
+        names.update([c.lower() for c in caps])
         
-        return list(set(variants))[:5]  # Limit to 5 variants
+        # Pattern 3: Extract from title patterns "BrandName - Description"
+        titles = re.findall(r'>([A-Z][a-zA-Z]{2,15})(?:\s*[-:|])', html_content)
+        names.update([t.lower() for t in titles])
+        
+        # Pattern 4: Extract from "app" context
+        app_names = re.findall(r'([A-Z][a-z]{2,12})\s+(?:app|App|APP)', html_content)
+        names.update([a.lower() for a in app_names])
+        
+        # Filter out common words
+        stopwords = {'the', 'and', 'for', 'app', 'apps', 'best', 'top', 'new', 'free', 'download', 
+                     'get', 'find', 'search', 'more', 'see', 'view', 'click', 'here', 'now',
+                     'dating', 'date', 'love', 'meet', 'chat', 'single', 'singles', 'online',
+                     'www', 'http', 'https', 'com', 'org', 'net', 'india', 'indian', 'usa'}
+        
+        return [n for n in names if n not in stopwords and len(n) >= 3]
     
-    def extract_bing_titles(html_content):
-        """Extract titles and domains from Bing search results"""
-        results = []
-        
-        # Extract from cite tags (domains)
-        cite_matches = re.findall(r'<cite[^>]*>([^<]+)</cite>', html_content)
-        results.extend(cite_matches)
-        
-        # Extract from links with title
-        title_matches = re.findall(r'<a[^>]*href="https?://[^"]*"[^>]*>([^<]{5,100})</a>', html_content)
-        results.extend([t for t in title_matches if len(t) > 5 and not t.startswith('http')])
-        
-        # Extract from spans with reasonable text
-        span_matches = re.findall(r'<span[^>]*>([A-Z][a-zA-Z0-9\s\-\.]{5,80})</span>', html_content)
-        results.extend(span_matches)
-        
-        # Look for brand-specific patterns
-        brand_patterns = re.findall(r'>([A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+)?)\s*[-–|:]\s*', html_content)
-        results.extend(brand_patterns)
-        
-        # Dedupe and clean
-        cleaned = []
-        seen = set()
-        for r in results:
-            r_clean = re.sub(r'&#\d+;', '', r).strip()
-            r_lower = r_clean.lower()
-            if r_clean and len(r_clean) > 3 and r_lower not in seen:
-                seen.add(r_lower)
-                cleaned.append(r_clean)
-        
-        return cleaned[:25]
-    
-    def check_phonetic_similarity(name1, name2):
-        """Check if two names are phonetically similar"""
+    def check_similarity(name1, name2):
+        """Check phonetic similarity between two names"""
         try:
             import jellyfish
             n1 = re.sub(r'[^a-z0-9]', '', name1.lower())
             n2 = re.sub(r'[^a-z0-9]', '', name2.lower())
             
             if len(n1) < 3 or len(n2) < 3:
-                return False, 0
+                return False, 0, ""
             
-            # Jaro-Winkler similarity
-            jw = jellyfish.jaro_winkler_similarity(n1, n2)
-            if jw >= 0.85:
-                return True, jw
+            # Exact match
+            if n1 == n2:
+                return True, 1.0, "EXACT"
             
-            # Soundex match
-            if jellyfish.soundex(n1) == jellyfish.soundex(n2):
-                return True, 0.90
-            
-            # Metaphone match
-            if jellyfish.metaphone(n1) == jellyfish.metaphone(n2):
-                return True, 0.88
-            
-            # Dedupe comparison
+            # Dedupe match (bumbell → bumbel vs bumble → bumble)
             n1_dedupe = re.sub(r'(.)\1+', r'\1', n1)
             n2_dedupe = re.sub(r'(.)\1+', r'\1', n2)
             if n1_dedupe == n2_dedupe:
-                return True, 0.92
+                return True, 0.95, "DEDUPE"
             
-            return False, jw
-        except:
-            return False, 0
+            # Jaro-Winkler (85% threshold)
+            jw = jellyfish.jaro_winkler_similarity(n1, n2)
+            if jw >= 0.85:
+                return True, jw, "JARO_WINKLER"
+            
+            # Soundex
+            if jellyfish.soundex(n1) == jellyfish.soundex(n2):
+                return True, 0.90, "SOUNDEX"
+            
+            # Metaphone
+            if jellyfish.metaphone(n1) == jellyfish.metaphone(n2):
+                return True, 0.88, "METAPHONE"
+            
+            return False, jw, ""
+        except Exception as e:
+            logging.warning(f"Similarity check error: {e}")
+            return False, 0, ""
     
     try:
         from primp import Client
         client = Client(impersonate="chrome_131", follow_redirects=True, timeout=10)
         
-        all_search_titles = []
-        search_variants = generate_search_variants(brand_name)
+        all_competitors = set()
         
-        # Search 1: Brand name + category
-        search_query_1 = f"{brand_name} {category}" if category else brand_name
-        logging.info(f"  Search 1: '{search_query_1}'")
-        try:
-            url1 = f"https://www.bing.com/search?q={search_query_1.replace(' ', '+')}"
-            response1 = client.get(url1)
-            if response1.status_code == 200:
-                titles1 = extract_bing_titles(response1.text)
-                all_search_titles.extend(titles1)
-                logging.info(f"    Found {len(titles1)} results")
-        except Exception as e:
-            logging.warning(f"    Search 1 failed: {e}")
-        
-        # Search 2: Just the brand name
-        logging.info(f"  Search 2: '{brand_name}'")
-        try:
-            url2 = f"https://www.bing.com/search?q={brand_name.replace(' ', '+')}"
-            response2 = client.get(url2)
-            if response2.status_code == 200:
-                titles2 = extract_bing_titles(response2.text)
-                all_search_titles.extend(titles2)
-                logging.info(f"    Found {len(titles2)} results")
-        except Exception as e:
-            logging.warning(f"    Search 2 failed: {e}")
-        
-        # Dedupe results
-        all_search_titles = list(set(all_search_titles))[:30]
-        result["search_results"] = all_search_titles
-        
-        # Analyze search results for EXACT and SIMILAR matches
-        exact_matches = 0
-        similar_matches = 0
-        phonetic_matches = []
-        evidence = []
-        matched_names = set()
-        
-        for search_result in all_search_titles:
-            search_lower = search_result.lower()
-            search_normalized = re.sub(r'[^a-z0-9\s]', '', search_lower)
-            
-            # Check for EXACT brand name in search result
-            if brand_lower in search_lower or brand_normalized in search_normalized:
-                exact_matches += 1
-                evidence.append(search_result[:100])
-                for delimiter in [' - ', ': ', ' | ', ' – ', ' -']:
-                    if delimiter in search_result:
-                        potential_brand = search_result.split(delimiter)[0].strip()
-                        if len(potential_brand) < 50:
-                            matched_names.add(potential_brand)
-                            break
-            
-            # Check for PHONETICALLY SIMILAR brand names in results
-            # Extract potential brand names from search result
-            words = re.findall(r'\b[A-Za-z]{3,15}\b', search_result)
-            for word in words:
-                is_similar, similarity = check_phonetic_similarity(brand_name, word)
-                if is_similar and word.lower() != brand_lower:
-                    similar_matches += 1
-                    phonetic_matches.append({
-                        "found": word,
-                        "similarity": similarity,
-                        "context": search_result[:80]
-                    })
-                    matched_names.add(word)
-                    evidence.append(f"SIMILAR: '{word}' in '{search_result[:60]}'")
-                    logging.warning(f"    🔊 PHONETIC MATCH: '{brand_name}' ~ '{word}' ({similarity:.0%})")
-                    break  # One match per result is enough
-        
-        # Determine if brand exists based on search results
-        total_matches = exact_matches + similar_matches
-        
-        if exact_matches >= 3:
-            result["exists"] = True
-            result["confidence"] = "HIGH"
-            result["matched_brand"] = list(matched_names)[0] if matched_names else brand_name
-            result["evidence"] = evidence[:5]
-            result["reason"] = f"Brand name '{brand_name}' appears in {exact_matches} search results. Existing brand detected."
-            logging.warning(f"🚨 DYNAMIC SEARCH: '{brand_name}' exists! ({exact_matches} exact matches)")
-            
-        elif similar_matches >= 2:
-            # PHONETICALLY SIMILAR brand found!
-            similar_brand = phonetic_matches[0]["found"] if phonetic_matches else "Unknown"
-            result["exists"] = True
-            result["confidence"] = "HIGH"
-            result["matched_brand"] = similar_brand
-            result["evidence"] = evidence[:5]
-            result["reason"] = f"Brand '{brand_name}' is phonetically similar to existing brand '{similar_brand}'. High trademark conflict risk."
-            logging.warning(f"🚨 DYNAMIC SEARCH: '{brand_name}' sounds like '{similar_brand}'!")
-            
-        elif exact_matches >= 1 and similar_matches >= 1:
-            result["exists"] = True
-            result["confidence"] = "MEDIUM"
-            result["matched_brand"] = list(matched_names)[0] if matched_names else brand_name
-            result["evidence"] = evidence[:5]
-            result["reason"] = f"Brand '{brand_name}' found in search results with similar variants."
-            logging.warning(f"⚠️ DYNAMIC SEARCH: '{brand_name}' may conflict")
-            
-        elif total_matches >= 4:
-            result["exists"] = True
-            result["confidence"] = "MEDIUM"
-            result["matched_brand"] = list(matched_names)[0] if matched_names else brand_name
-            result["evidence"] = evidence[:5]
-            result["reason"] = f"Multiple references to '{brand_name}' found in search results."
-            logging.warning(f"⚠️ DYNAMIC SEARCH: '{brand_name}' may exist ({total_matches} total matches)")
-        
+        # SEARCH 1: Top apps/brands in this category
+        if category:
+            search_queries = [
+                f"top {category} apps",
+                f"best {category} brands",
+                f"{category} competitors",
+            ]
         else:
-            logging.info(f"✅ DYNAMIC SEARCH: '{brand_name}' appears unique ({exact_matches} exact, {similar_matches} similar)")
+            search_queries = [
+                f"{brand_name} competitors",
+                f"{brand_name} similar apps",
+            ]
+        
+        for query in search_queries[:2]:  # Limit to 2 searches
+            logging.info(f"  Searching: '{query}'")
+            try:
+                url = f"https://www.bing.com/search?q={query.replace(' ', '+')}"
+                response = client.get(url)
+                if response.status_code == 200:
+                    found_names = extract_brand_names_from_html(response.text)
+                    all_competitors.update(found_names)
+                    logging.info(f"    Found {len(found_names)} potential brand names")
+            except Exception as e:
+                logging.warning(f"    Search failed: {e}")
+        
+        # SEARCH 2: Direct brand name search (to find exact matches)
+        logging.info(f"  Searching: '{brand_name}'")
+        try:
+            url = f"https://www.bing.com/search?q={brand_name.replace(' ', '+')}"
+            response = client.get(url)
+            if response.status_code == 200:
+                found_names = extract_brand_names_from_html(response.text)
+                all_competitors.update(found_names)
+        except Exception as e:
+            logging.warning(f"    Search failed: {e}")
+        
+        result["competitors_found"] = list(all_competitors)[:30]
+        logging.info(f"  Total competitors found: {len(all_competitors)}")
+        
+        # COMPARE user's brand against ALL found competitors
+        conflicts = []
+        for competitor in all_competitors:
+            is_similar, similarity, match_type = check_similarity(brand_name, competitor)
+            if is_similar:
+                conflicts.append({
+                    "competitor": competitor,
+                    "similarity": similarity,
+                    "match_type": match_type
+                })
+                logging.warning(f"    🚨 CONFLICT: '{brand_name}' ~ '{competitor}' ({similarity:.0%} {match_type})")
+        
+        # Determine result
+        if conflicts:
+            # Sort by similarity, get the best match
+            best_match = max(conflicts, key=lambda x: x["similarity"])
+            
+            result["exists"] = True
+            result["confidence"] = "HIGH" if best_match["similarity"] >= 0.90 else "MEDIUM"
+            result["matched_brand"] = best_match["competitor"].title()
+            result["evidence"] = [f"{c['competitor']} ({c['similarity']:.0%})" for c in conflicts[:5]]
+            result["reason"] = f"Brand '{brand_name}' is {best_match['similarity']:.0%} similar to existing brand '{best_match['competitor'].title()}' found in {category} market. High trademark conflict risk."
+            
+            logging.warning(f"🚨 DYNAMIC SEARCH RESULT: '{brand_name}' conflicts with '{best_match['competitor']}' ({best_match['similarity']:.0%})")
+        else:
+            logging.info(f"✅ DYNAMIC SEARCH: '{brand_name}' appears unique (checked against {len(all_competitors)} competitors)")
     
     except Exception as e:
         logging.error(f"Dynamic search error: {e}")
