@@ -818,17 +818,17 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
         
         all_competitors = set()
         
-        # SEARCH 1: Top apps/brands in this category
+        # SEARCH 1: Find competitors in this category
         if category:
             search_queries = [
-                f"top {category} apps",
-                f"best {category} brands",
-                f"{category} competitors",
+                f"top {category} apps list",
+                f"best {category} 2024 apps",
+                f"{category} app brands tinder bumble",  # Include example brands to get better results
             ]
         else:
             search_queries = [
                 f"{brand_name} competitors",
-                f"{brand_name} similar apps",
+                f"{brand_name} similar brands",
             ]
         
         for query in search_queries[:2]:  # Limit to 2 searches
