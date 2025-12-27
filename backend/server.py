@@ -921,9 +921,12 @@ async def evaluate_brands(request: BrandEvaluationRequest):
             return f"{brand}.com: CHECK FAILED (Error: {str(e)})"
     
     async def gather_similarity_data(brand):
-        """Run similarity checks"""
+        """Run similarity checks - wrapped for async"""
         try:
-            sim_result = check_brand_similarity(brand, request.industry or "", request.category)
+            # Run synchronous check in thread pool
+            sim_result = await asyncio.to_thread(
+                check_brand_similarity, brand, request.industry or "", request.category
+            )
             return {
                 "report": format_similarity_report(sim_result),
                 "should_reject": sim_result.get('should_reject', False),
