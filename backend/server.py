@@ -21,7 +21,7 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Import custom modules
-from schemas import BrandEvaluationRequest, BrandEvaluationResponse, StatusCheck, StatusCheckCreate
+from schemas import BrandEvaluationRequest, BrandEvaluationResponse, StatusCheck, StatusCheckCreate, DimensionScore, BrandScore
 from prompts import SYSTEM_PROMPT
 from visibility import check_visibility
 from availability import check_full_availability, check_multi_domain_availability, check_social_availability
