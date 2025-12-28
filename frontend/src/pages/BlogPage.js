@@ -90,7 +90,6 @@ const BlogPage = () => {
               </Link>
               <nav className="hidden md:flex items-center gap-6">
                 <Link to="/" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Home</Link>
-                <Link to="/pricing" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Pricing</Link>
                 <Link to="/blog" className="text-sm font-semibold text-blue-600">Blog</Link>
               </nav>
               <Link to="/">
