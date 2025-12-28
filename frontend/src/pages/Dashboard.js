@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,14 @@ import {
     Lock, Sparkles, TrendingUp, AlertTriangle, Users, Zap, 
     BarChart3, Target, Award, FileText, Calendar, Lightbulb,
     Rocket, MessageSquare, Scale, Building2, Hash, AtSign,
-    CheckCircle, XOctagon, HelpCircle, Map, Briefcase, UserCheck, AlertCircle
+    CheckCircle, XOctagon, HelpCircle, Map, Briefcase, UserCheck, AlertCircle,
+    Download, Loader2
 } from "lucide-react";
 import { 
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, 
     ResponsiveContainer, Tooltip 
 } from 'recharts';
+import html2pdf from 'html2pdf.js';
 
 // RIGHTNAME Logo URL
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_name-radar-1/artifacts/a4ppykdi_RIGHTNAME.AI.png";
