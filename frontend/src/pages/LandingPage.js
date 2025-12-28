@@ -722,6 +722,226 @@ const LandingPage = () => {
             </div>
         </div>
 
+        {/* How It Works Section */}
+        <div id="how-it-works" className="mt-28">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200 px-4 py-1.5 text-sm font-black">
+              🚀 How It Works
+            </Badge>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">
+              Three Steps to{' '}
+              <span className="text-emerald-600">Brand Clarity</span>
+            </h2>
+            <p className="text-slate-500 font-medium max-w-2xl mx-auto text-lg">
+              From idea to actionable insights in under 60 seconds.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connector Line */}
+            <div className="hidden md:block absolute top-8 left-1/4 right-1/4 h-1 bg-gradient-to-r from-violet-300 via-fuchsia-300 to-orange-300 rounded-full" />
+            
+            <HowItWorksStep
+              number="1"
+              icon={FileText}
+              title="Enter Brand Names"
+              description="Add up to 3 brand name options you're considering. Include your industry and target market for context."
+              color="bg-gradient-to-br from-violet-500 to-violet-600"
+            />
+            <HowItWorksStep
+              number="2"
+              icon={BrainCircuit}
+              title="AI Analysis"
+              description="Our AI checks trademark databases, domain availability, social handles, and cultural implications in real-time."
+              color="bg-gradient-to-br from-fuchsia-500 to-fuchsia-600"
+            />
+            <HowItWorksStep
+              number="3"
+              icon={Target}
+              title="Get Your Report"
+              description="Receive a consulting-grade NameScore report with actionable recommendations and risk assessment."
+              color="bg-gradient-to-br from-orange-500 to-orange-600"
+            />
+          </div>
+        </div>
+
+        {/* Use Cases Section */}
+        <div className="mt-28">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 text-sm font-black">
+              👥 Who It's For
+            </Badge>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">
+              Built for{' '}
+              <span className="text-blue-600">Brand Builders</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <UseCaseCard
+              icon={Rocket}
+              title="Startup Founders"
+              description="Validate your brand before investing in design, marketing, and legal registration."
+              color="bg-gradient-to-br from-violet-500 to-violet-600"
+            />
+            <UseCaseCard
+              icon={Users}
+              title="Brand Consultants"
+              description="Speed up client projects with AI-powered preliminary analysis and professional reports."
+              color="bg-gradient-to-br from-blue-500 to-blue-600"
+            />
+            <UseCaseCard
+              icon={Building2}
+              title="Marketing Agencies"
+              description="Add brand validation as a premium service. Generate unlimited reports for clients."
+              color="bg-gradient-to-br from-emerald-500 to-emerald-600"
+            />
+            <UseCaseCard
+              icon={Briefcase}
+              title="Enterprise Teams"
+              description="Standardize brand evaluation across product launches and market expansions."
+              color="bg-gradient-to-br from-orange-500 to-orange-600"
+            />
+          </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div className="mt-28">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 px-4 py-1.5 text-sm font-black">
+              ⭐ Success Stories
+            </Badge>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">
+              Loved by{' '}
+              <span className="text-fuchsia-600">500+ Founders</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <TestimonialCard
+              quote="RIGHTNAME saved us from a $50k trademark dispute. The AI caught a conflict our lawyers missed initially."
+              author="Sarah Chen"
+              role="Founder"
+              company="TechFlow AI"
+              avatar="SC"
+            />
+            <TestimonialCard
+              quote="We use RIGHTNAME for every client project now. The reports are more comprehensive than what we used to deliver manually."
+              author="Marcus Johnson"
+              role="Brand Director"
+              company="Spark Agency"
+              avatar="MJ"
+            />
+            <TestimonialCard
+              quote="The cultural analysis feature is incredible. It flagged issues with our name in 3 markets we hadn't considered."
+              author="Priya Sharma"
+              role="CEO"
+              company="GlobalEats"
+              avatar="PS"
+            />
+          </div>
+        </div>
+
+        {/* Pricing Preview */}
+        <div className="mt-28 bg-gradient-to-br from-slate-50 to-violet-50/30 rounded-3xl p-12 border-2 border-slate-200">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200 px-4 py-1.5 text-sm font-black">
+              💰 Simple Pricing
+            </Badge>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">
+              Start{' '}
+              <span className="text-emerald-600">Free</span>, Scale as You Grow
+            </h2>
+            <p className="text-slate-500 font-medium max-w-2xl mx-auto text-lg">
+              No subscriptions. No hidden fees. Pay only when you need more reports.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl p-6 border-2 border-emerald-200 text-center">
+              <div className="text-4xl mb-2">🎁</div>
+              <h3 className="font-black text-xl text-slate-900 mb-1">Free Trial</h3>
+              <p className="text-3xl font-black text-emerald-600 mb-2">$0</p>
+              <p className="text-slate-500 text-sm">First report free</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border-2 border-blue-200 text-center">
+              <div className="text-4xl mb-2">📄</div>
+              <h3 className="font-black text-xl text-slate-900 mb-1">Single Report</h3>
+              <p className="text-3xl font-black text-blue-600 mb-2">$29</p>
+              <p className="text-slate-500 text-sm">Per evaluation</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border-2 border-violet-300 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">BEST VALUE</div>
+              <div className="text-4xl mb-2">👑</div>
+              <h3 className="font-black text-xl text-slate-900 mb-1">3-Report Bundle</h3>
+              <p className="text-3xl font-black text-violet-600 mb-2">$49</p>
+              <p className="text-slate-500 text-sm">Save $38</p>
+            </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <Link to="/pricing">
+              <Button className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-6 rounded-xl text-lg">
+                View Full Pricing <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div id="faq" className="mt-28">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-orange-100 text-orange-700 border-orange-200 px-4 py-1.5 text-sm font-black">
+              ❓ FAQ
+            </Badge>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">
+              Frequently Asked{' '}
+              <span className="text-orange-600">Questions</span>
+            </h2>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {[
+              {
+                q: "What is RIGHTNAME?",
+                a: "RIGHTNAME is an AI-powered brand name evaluation tool that provides consulting-grade analysis of brand names. It checks trademark conflicts, domain availability, social media handles, and generates a comprehensive NameScore report in under 60 seconds."
+              },
+              {
+                q: "How much does RIGHTNAME cost?",
+                a: "Your first report is completely FREE with no credit card required. After that, single reports cost $29 each, or you can get a bundle of 3 reports for $49 (saving $38)."
+              },
+              {
+                q: "What does a RIGHTNAME report include?",
+                a: "Each report includes: NameScore Index (0-100), Trademark Risk Matrix, Domain Availability Check, Social Handle Availability, Competitive Landscape Analysis, Cultural & Linguistic Analysis, Registration Timeline & Costs, Mitigation Strategies, and Alternative Name Suggestions."
+              },
+              {
+                q: "How long does it take to generate a report?",
+                a: "Most reports are generated in 45-90 seconds. Our AI performs real-time trademark searches, domain checks, and comprehensive analysis to deliver consulting-grade insights quickly."
+              },
+              {
+                q: "Is RIGHTNAME accurate for trademark checking?",
+                a: "RIGHTNAME uses real-time web searches of trademark databases, phonetic similarity algorithms, and AI analysis to identify potential conflicts. While it provides comprehensive preliminary screening, we recommend consulting a trademark attorney for official legal advice before registration."
+              },
+              {
+                q: "Can I evaluate multiple brand names at once?",
+                a: "Yes! Each report can analyze up to 3 brand name options with side-by-side comparison and recommendations to help you choose the best option."
+              },
+              {
+                q: "Which countries do you support?",
+                a: "We support trademark analysis for 15+ countries including USA, India, UK, Canada, Australia, Germany, France, Japan, China, Brazil, UAE, Singapore, and more. Each report includes country-specific registration costs and timelines."
+              }
+            ].map((faq, index) => (
+              <FAQItem
+                key={index}
+                question={faq.q}
+                answer={faq.a}
+                isOpen={openFAQ === index}
+                onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* CTA Section */}
         <div className="mt-28 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-500 rounded-[2rem] blur-xl opacity-20"></div>
@@ -739,19 +959,10 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-20 border-t-2 border-slate-100 pt-12 text-center pb-8">
-            <div className="flex justify-center items-center gap-6 mb-6">
-                 <span className="font-black text-xl text-slate-800">OpenAI</span>
-                 <span className="text-slate-300">•</span>
-                 <span className="font-bold text-lg text-slate-600">React</span>
-                 <span className="text-slate-300">•</span>
-                 <span className="font-bold text-lg text-slate-600">FastAPI</span>
-            </div>
-            <p className="text-sm text-slate-400 font-medium">© 2025 RIGHTNAME. All rights reserved.</p>
-        </div>
-
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
