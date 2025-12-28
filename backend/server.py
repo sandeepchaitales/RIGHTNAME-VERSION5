@@ -755,6 +755,10 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
         'gaming': ['pubg', 'freefire', 'codmobile', 'ludoking', 'candycrush', 'clashofclans', 'minecraft'],
         'health': ['practo', 'netmeds', 'pharmeasy', 'apollo', 'medlife', 'healthify', 'cultfit'],
         'education': ['byjus', 'unacademy', 'vedantu', 'toppr', 'coursera', 'udemy', 'skillshare'],
+        # NEWS & MEDIA - Indian newspapers, news channels, media
+        'news': ['andhrajyothi', 'andhrajyothy', 'eenadu', 'sakshi', 'deccanchronicle', 'thehindu', 'timesofindia', 'hindustan', 'navbharat', 'dainikbhaskar', 'dainikjagran', 'aajtak', 'zeenews', 'ndtv', 'republicworld', 'indiatoday', 'abpnews', 'news18', 'tv9', 'etv'],
+        'media': ['andhrajyothi', 'andhrajyothy', 'eenadu', 'sakshi', 'deccanchronicle', 'thehindu', 'timesofindia', 'hindustan', 'navbharat', 'dainikbhaskar', 'dainikjagran', 'aajtak', 'zeenews', 'ndtv', 'republicworld', 'indiatoday', 'abpnews', 'news18', 'tv9', 'etv'],
+        'newspaper': ['andhrajyothi', 'andhrajyothy', 'eenadu', 'sakshi', 'deccanchronicle', 'thehindu', 'timesofindia', 'hindustan', 'navbharat', 'dainikbhaskar', 'dainikjagran', 'lokmat', 'loksatta', 'malayalamanorama', 'mathrubhumi', 'dinamalar', 'dinakaran', 'dinamani'],
     }
     
     def check_similarity(name1, name2):
