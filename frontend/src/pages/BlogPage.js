@@ -82,7 +82,7 @@ const BlogPage = () => {
             <div className="flex items-center justify-between h-16">
               <Link to="/" className="flex items-center gap-2">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_name-radar-1/artifacts/a4ppykdi_RIGHTNAME.AI.png" 
+                  src="https://customer-assets.emergentagent.com/job_name-radar-1/artifacts/qrfrrizq_R.png" 
                   alt="RIGHTNAME Logo" 
                   className="w-10 h-10 rounded-xl"
                 />
