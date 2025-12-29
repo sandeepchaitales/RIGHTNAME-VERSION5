@@ -864,18 +864,36 @@ Return ONLY the JSON, no other text."""
             
             print(f"📊 Parsed LLM result for '{brand_name}': conflict={llm_result.get('has_conflict')}, confidence={llm_result.get('confidence')}", flush=True)
             
-            if llm_result.get("has_conflict") and llm_result.get("confidence") in ["HIGH", "MEDIUM"]:
+            # Check if LLM says brand already exists OR has conflict
+            brand_exists = llm_result.get("brand_already_exists", False)
+            has_conflict = llm_result.get("has_conflict", False)
+            
+            if (has_conflict or brand_exists) and llm_result.get("confidence") in ["HIGH", "MEDIUM"]:
                 result["exists"] = True
                 result["confidence"] = llm_result.get("confidence", "MEDIUM")
-                result["matched_brand"] = llm_result.get("conflicting_brand", "Unknown")
+                result["matched_brand"] = llm_result.get("conflicting_brand", brand_name)
                 result["evidence"] = [
                     f"Similarity: {llm_result.get('similarity_percentage', 0)}%",
                     llm_result.get("brand_info", "")
                 ]
+                if web_evidence:
+                    result["evidence"].extend([f"Web: {e}" for e in web_evidence])
                 result["reason"] = llm_result.get("reason", "Conflict detected by AI analysis")
+                if brand_exists:
+                    result["reason"] = f"EXISTING BRAND: {result['reason']}"
                 
                 print(f"🚨 LLM DETECTED CONFLICT: '{brand_name}' ~ '{result['matched_brand']}' ({llm_result.get('similarity_percentage')}%)", flush=True)
                 logging.warning(f"🚨 LLM DETECTED CONFLICT: '{brand_name}' ~ '{result['matched_brand']}' ({llm_result.get('similarity_percentage')}%)")
+            
+            # If LLM says no conflict but web search found evidence, still flag it
+            elif brand_found_online and not has_conflict:
+                print(f"⚠️ WEB OVERRIDE: LLM said no conflict, but web search found '{brand_name}' exists!", flush=True)
+                logging.warning(f"⚠️ WEB OVERRIDE: LLM missed but web found '{brand_name}'")
+                result["exists"] = True
+                result["confidence"] = "MEDIUM"
+                result["matched_brand"] = brand_name
+                result["evidence"] = [f"Web: {e}" for e in web_evidence]
+                result["reason"] = f"Brand '{brand_name}' appears to exist based on web search (found: {', '.join(web_evidence[:2])})"
             else:
                 print(f"✅ LLM: '{brand_name}' appears unique", flush=True)
                 logging.info(f"✅ LLM: '{brand_name}' appears unique")
@@ -883,9 +901,25 @@ Return ONLY the JSON, no other text."""
         except json.JSONDecodeError as e:
             logging.warning(f"Failed to parse LLM response: {e}")
             logging.warning(f"Response was: {response[:200]}")
+            
+            # If LLM failed but web search found the brand, still flag it
+            if brand_found_online:
+                result["exists"] = True
+                result["confidence"] = "MEDIUM"
+                result["matched_brand"] = brand_name
+                result["evidence"] = [f"Web: {e}" for e in web_evidence]
+                result["reason"] = f"Brand '{brand_name}' found via web search"
     
     except Exception as e:
         logging.error(f"LLM brand check failed: {e}")
+        
+        # If LLM failed but web search found the brand, still flag it
+        if brand_found_online:
+            result["exists"] = True
+            result["confidence"] = "MEDIUM"
+            result["matched_brand"] = brand_name
+            result["evidence"] = [f"Web: {e}" for e in web_evidence]
+            result["reason"] = f"Brand '{brand_name}' found via web search"
     
     return result
 
