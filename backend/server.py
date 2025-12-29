@@ -787,13 +787,14 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
             total_mentions = mentions_with_space + mentions_no_space
             
             # STRONG business indicators (these almost certainly mean a business exists)
+            # NOTE: Generic indicators like ".com" and ".in" are removed to prevent false positives
             strong_indicators = [
                 "zomato.com", "swiggy.com", "justdial.com", "tripadvisor",
                 "google.com/maps", "maps.google", "yelp.com",
                 "franchise", "outlets", "locations", "branches",
-                "official website", "official site", ".com", ".in",
+                "official website", "official site",
                 "founded in", "established in", "since 20", "since 19",
-                "menu", "order online", "delivery", "dine-in"
+                "order online", "delivery", "dine-in"
             ]
             
             # MEDIUM indicators (need more context)
@@ -801,7 +802,7 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
                 "cafe", "restaurant", "chain", "store", "shop",
                 "reviews", "rating", "stars", "customer",
                 "contact", "address", "phone", "email",
-                "about us", "our story", "our team"
+                "about us", "our story", "our team", "menu"
             ]
             
             # Check for indicators ANYWHERE in results (not just near brand)
@@ -816,7 +817,7 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
                 if indicator in html_lower:
                     found_medium.append(indicator)
             
-            # Also check for domain patterns
+            # Check for BRAND-SPECIFIC domain patterns (must include the actual brand name)
             domain_patterns = [f"{brand_lower}.com", f"{brand_lower}.in", f"{brand_lower}.co", f"{brand_lower}.cafe"]
             for pattern in domain_patterns:
                 if pattern in html_lower:
@@ -827,23 +828,50 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
             print(f"🔎 WEB SEARCH: '{brand_name}' mentions={total_mentions}, strong={found_strong[:3]}, medium={found_medium[:3]}", flush=True)
             logging.warning(f"🔎 WEB SEARCH: '{brand_name}' mentions={total_mentions}, strong={found_strong[:3]}, medium={found_medium[:3]}")
             
-            # DETECTION LOGIC - More sensitive for real businesses
-            # Case 1: Any strong indicator + reasonable mentions = likely existing business
-            if len(found_strong) >= 1 and total_mentions >= 2:
+            # DETECTION LOGIC - Balanced for accuracy
+            # Case 1: Brand-specific domain found = strong signal
+            has_brand_domain = any("domain:" in s for s in found_strong)
+            
+            # Case 2: Platform-specific indicators (Zomato, Swiggy, etc.) = strong signal
+            has_platform = any(p in found_strong for p in ["zomato.com", "swiggy.com", "justdial.com", "tripadvisor", "yelp.com"])
+            
+            # Case 3: Business structure indicators
+            has_business_structure = any(p in found_strong for p in ["franchise", "outlets", "locations", "branches"])
+            
+            if has_brand_domain and total_mentions >= 2:
                 brand_found_online = True
                 web_evidence = [f"mentions:{total_mentions}"] + found_strong[:3]
-                print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business (strong indicators)!", flush=True)
+                print(f"🌐 WEB FOUND: '{brand_name}' has a dedicated domain!", flush=True)
+                logging.warning(f"🌐 WEB FOUND: '{brand_name}' domain found! strong={found_strong[:3]}")
+            
+            elif has_platform and total_mentions >= 2:
+                brand_found_online = True
+                web_evidence = [f"mentions:{total_mentions}"] + found_strong[:3]
+                print(f"🌐 WEB FOUND: '{brand_name}' found on business platforms!", flush=True)
+                logging.warning(f"🌐 WEB FOUND: '{brand_name}' on platforms! strong={found_strong[:3]}")
+            
+            elif has_business_structure and total_mentions >= 3:
+                brand_found_online = True
+                web_evidence = [f"mentions:{total_mentions}"] + found_strong[:3]
+                print(f"🌐 WEB FOUND: '{brand_name}' appears to have business presence!", flush=True)
+                logging.warning(f"🌐 WEB FOUND: '{brand_name}' business indicators! strong={found_strong[:3]}")
+            
+            # Case 4: Multiple strong indicators + mentions
+            elif len(found_strong) >= 2 and total_mentions >= 3:
+                brand_found_online = True
+                web_evidence = [f"mentions:{total_mentions}"] + found_strong[:3]
+                print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business!", flush=True)
                 logging.warning(f"🌐 WEB FOUND: '{brand_name}' exists! strong={found_strong[:3]}")
             
-            # Case 2: Multiple medium indicators + good mentions = likely existing
-            elif len(found_medium) >= 3 and total_mentions >= 3:
+            # Case 5: Many medium indicators + significant mentions = likely existing
+            elif len(found_medium) >= 4 and total_mentions >= 5:
                 brand_found_online = True
                 web_evidence = [f"mentions:{total_mentions}"] + found_medium[:3]
                 print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business (multiple indicators)!", flush=True)
                 logging.warning(f"🌐 WEB FOUND: '{brand_name}' exists! medium={found_medium[:3]}")
             
-            # Case 3: High mention count alone = worth flagging
-            elif total_mentions >= 8:
+            # Case 6: Very high mention count alone = worth flagging
+            elif total_mentions >= 15:
                 brand_found_online = True
                 web_evidence = [f"mentions:{total_mentions}"]
                 print(f"🌐 WEB FOUND: '{brand_name}' has significant web presence ({total_mentions} mentions)!", flush=True)
