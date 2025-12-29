@@ -988,15 +988,24 @@ Return ONLY the JSON, no other text."""
                 print(f"🚨 LLM DETECTED CONFLICT: '{brand_name}' ~ '{result['matched_brand']}' ({llm_result.get('similarity_percentage')}%)", flush=True)
                 logging.warning(f"🚨 LLM DETECTED CONFLICT: '{brand_name}' ~ '{result['matched_brand']}' ({llm_result.get('similarity_percentage')}%)")
             
-            # If LLM says no conflict but web search found evidence, still flag it
+            # If LLM says no conflict but web search found STRONG evidence, flag it
+            # But only if we have brand-specific indicators (domains, platforms)
             elif brand_found_online and not has_conflict:
-                print(f"⚠️ WEB OVERRIDE: LLM said no conflict, but web search found '{brand_name}' exists!", flush=True)
-                logging.warning(f"⚠️ WEB OVERRIDE: LLM missed but web found '{brand_name}'")
-                result["exists"] = True
-                result["confidence"] = "MEDIUM"
-                result["matched_brand"] = brand_name
-                result["evidence"] = [f"Web: {e}" for e in web_evidence]
-                result["reason"] = f"Brand '{brand_name}' appears to exist based on web search (found: {', '.join(web_evidence[:2])})"
+                # Check if web evidence contains strong brand-specific indicators
+                has_brand_specific = any("domain:" in e or "zomato" in e.lower() or "swiggy" in e.lower() or "justdial" in e.lower() for e in web_evidence)
+                
+                if has_brand_specific:
+                    print(f"⚠️ WEB OVERRIDE: LLM said no conflict, but web search found strong evidence for '{brand_name}'!", flush=True)
+                    logging.warning(f"⚠️ WEB OVERRIDE: LLM missed but web found '{brand_name}' with strong evidence")
+                    result["exists"] = True
+                    result["confidence"] = "MEDIUM"
+                    result["matched_brand"] = brand_name
+                    result["evidence"] = [f"Web: {e}" for e in web_evidence]
+                    result["reason"] = f"Brand '{brand_name}' appears to exist based on web search (found: {', '.join(web_evidence[:2])})"
+                else:
+                    # Trust the LLM over generic web indicators
+                    print(f"✅ LLM: '{brand_name}' appears unique (ignoring generic web indicators)", flush=True)
+                    logging.info(f"✅ LLM: '{brand_name}' appears unique (generic web indicators ignored)")
             else:
                 print(f"✅ LLM: '{brand_name}' appears unique", flush=True)
                 logging.info(f"✅ LLM: '{brand_name}' appears unique")
