@@ -737,77 +737,117 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
         "reason": ""
     }
     
-    # ========== STEP 1: WEB SEARCH TO CHECK IF BRAND EXISTS ==========
+    # ========== STEP 1: ENHANCED WEB SEARCH TO CHECK IF BRAND EXISTS ==========
     web_evidence = []
     brand_found_online = False
     
     try:
-        # Search for the brand with category context
-        search_query = f'"{brand_name}" {category}'
-        search_url = f"https://www.bing.com/search?q={search_query.replace(' ', '+')}"
+        import re
+        brand_lower = brand_name.lower().replace(" ", "")
+        brand_with_space = brand_name.lower()
+        
+        # Multiple search queries for comprehensive coverage
+        search_queries = [
+            f'"{brand_name}"',                          # Exact brand name
+            f'"{brand_name}" {category}',               # Brand + category
+            f'"{brand_name}" zomato OR swiggy',         # F&B delivery platforms
+            f'"{brand_name}" franchise OR outlet',      # Franchise/chain indicators
+        ]
+        
+        total_mentions = 0
+        all_indicators = []
+        all_html = ""
         
         async with aiohttp.ClientSession() as session:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             }
-            async with session.get(search_url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as response:
-                if response.status == 200:
-                    html = await response.text()
-                    html_lower = html.lower()
-                    brand_lower = brand_name.lower().replace(" ", "")
-                    brand_with_space = brand_name.lower()
-                    
-                    # Count how many times the EXACT brand appears in search results
-                    # Use word boundary matching to avoid partial matches
-                    import re
-                    brand_pattern = re.escape(brand_with_space)
-                    brand_mentions = len(re.findall(rf'\b{brand_pattern}\b', html_lower))
-                    
-                    # Also check without spaces for combined brand names
-                    brand_no_space_pattern = re.escape(brand_lower)
-                    brand_mentions += len(re.findall(rf'\b{brand_no_space_pattern}\b', html_lower))
-                    
-                    # Strong indicators the brand is an established business
-                    # These must appear NEAR the brand name (within 200 chars)
-                    business_indicators = [
-                        "official site", "official website", "franchise", "stores", "outlets", "locations",
-                        "menu", "cafe", "restaurant", "chain", "reviews", "rating",
-                        "zomato", "swiggy", "google maps", "contact us", "careers",
-                        "about us", "our story", "founded", "established"
-                    ]
-                    
-                    found_indicators = []
-                    # Look for indicators within 200 chars of brand mention
-                    for match in re.finditer(rf'\b{brand_pattern}\b|\b{brand_no_space_pattern}\b', html_lower):
-                        context_start = max(0, match.start() - 200)
-                        context_end = min(len(html_lower), match.end() + 200)
-                        context = html_lower[context_start:context_end]
-                        
-                        for indicator in business_indicators:
-                            if indicator in context and indicator not in found_indicators:
-                                found_indicators.append(indicator)
-                    
-                    # Also check for domain patterns
-                    domain_patterns = [f"{brand_lower}.com", f"{brand_lower}.in", f"{brand_lower}.co"]
-                    for pattern in domain_patterns:
-                        if pattern in html_lower:
-                            found_indicators.append(f"domain:{pattern}")
-                    
-                    print(f"🔎 WEB SEARCH: '{brand_name}' mentions={brand_mentions}, indicators={found_indicators[:5]}", flush=True)
-                    
-                    # Only flag if brand appears multiple times with CONTEXT indicators
-                    # Higher thresholds to reduce false positives
-                    if brand_mentions >= 5 and len(found_indicators) >= 3:
-                        brand_found_online = True
-                        web_evidence = [f"mentions:{brand_mentions}"] + found_indicators[:3]
-                        print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business!", flush=True)
-                        logging.warning(f"🌐 WEB FOUND: '{brand_name}' exists! mentions={brand_mentions}, indicators={found_indicators[:3]}")
-                    elif brand_mentions >= 10 and len(found_indicators) >= 1:
-                        # Very high mention count with at least one indicator
-                        brand_found_online = True
-                        web_evidence = [f"mentions:{brand_mentions}"] + found_indicators[:2]
-                        print(f"🌐 WEB FOUND: '{brand_name}' has high visibility ({brand_mentions} mentions)!", flush=True)
-                        logging.warning(f"🌐 WEB FOUND: '{brand_name}' high visibility: {brand_mentions} mentions")
+            
+            for query in search_queries[:2]:  # Limit to 2 searches to avoid rate limiting
+                try:
+                    search_url = f"https://www.bing.com/search?q={query.replace(' ', '+')}"
+                    async with session.get(search_url, headers=headers, timeout=aiohttp.ClientTimeout(total=8)) as response:
+                        if response.status == 200:
+                            html = await response.text()
+                            all_html += html.lower()
+                except Exception as e:
+                    logging.debug(f"Search query failed: {query}: {e}")
+                    continue
+        
+        if all_html:
+            html_lower = all_html
+            
+            # Count brand mentions (both with and without spaces)
+            brand_pattern = re.escape(brand_with_space)
+            brand_no_space_pattern = re.escape(brand_lower)
+            
+            # Count exact mentions
+            mentions_with_space = len(re.findall(rf'{brand_pattern}', html_lower))
+            mentions_no_space = len(re.findall(rf'{brand_no_space_pattern}', html_lower))
+            total_mentions = mentions_with_space + mentions_no_space
+            
+            # STRONG business indicators (these almost certainly mean a business exists)
+            strong_indicators = [
+                "zomato.com", "swiggy.com", "justdial.com", "tripadvisor",
+                "google.com/maps", "maps.google", "yelp.com",
+                "franchise", "outlets", "locations", "branches",
+                "official website", "official site", ".com", ".in",
+                "founded in", "established in", "since 20", "since 19",
+                "menu", "order online", "delivery", "dine-in"
+            ]
+            
+            # MEDIUM indicators (need more context)
+            medium_indicators = [
+                "cafe", "restaurant", "chain", "store", "shop",
+                "reviews", "rating", "stars", "customer",
+                "contact", "address", "phone", "email",
+                "about us", "our story", "our team"
+            ]
+            
+            # Check for indicators ANYWHERE in results (not just near brand)
+            found_strong = []
+            found_medium = []
+            
+            for indicator in strong_indicators:
+                if indicator in html_lower:
+                    found_strong.append(indicator)
+            
+            for indicator in medium_indicators:
+                if indicator in html_lower:
+                    found_medium.append(indicator)
+            
+            # Also check for domain patterns
+            domain_patterns = [f"{brand_lower}.com", f"{brand_lower}.in", f"{brand_lower}.co", f"{brand_lower}.cafe"]
+            for pattern in domain_patterns:
+                if pattern in html_lower:
+                    found_strong.append(f"domain:{pattern}")
+            
+            all_indicators = found_strong + found_medium
+            
+            print(f"🔎 WEB SEARCH: '{brand_name}' mentions={total_mentions}, strong={found_strong[:3]}, medium={found_medium[:3]}", flush=True)
+            logging.warning(f"🔎 WEB SEARCH: '{brand_name}' mentions={total_mentions}, strong={found_strong[:3]}, medium={found_medium[:3]}")
+            
+            # DETECTION LOGIC - More sensitive for real businesses
+            # Case 1: Any strong indicator + reasonable mentions = likely existing business
+            if len(found_strong) >= 1 and total_mentions >= 2:
+                brand_found_online = True
+                web_evidence = [f"mentions:{total_mentions}"] + found_strong[:3]
+                print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business (strong indicators)!", flush=True)
+                logging.warning(f"🌐 WEB FOUND: '{brand_name}' exists! strong={found_strong[:3]}")
+            
+            # Case 2: Multiple medium indicators + good mentions = likely existing
+            elif len(found_medium) >= 3 and total_mentions >= 3:
+                brand_found_online = True
+                web_evidence = [f"mentions:{total_mentions}"] + found_medium[:3]
+                print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business (multiple indicators)!", flush=True)
+                logging.warning(f"🌐 WEB FOUND: '{brand_name}' exists! medium={found_medium[:3]}")
+            
+            # Case 3: High mention count alone = worth flagging
+            elif total_mentions >= 8:
+                brand_found_online = True
+                web_evidence = [f"mentions:{total_mentions}"]
+                print(f"🌐 WEB FOUND: '{brand_name}' has significant web presence ({total_mentions} mentions)!", flush=True)
+                logging.warning(f"🌐 WEB FOUND: '{brand_name}' high visibility: {total_mentions} mentions")
                         
     except Exception as e:
         logging.error(f"Web search failed for {brand_name}: {e}")
