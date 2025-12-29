@@ -766,46 +766,69 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
                     brand_pattern = re.escape(brand_with_space)
                     mentions = len(re.findall(brand_pattern, html_lower))
                     
-                    # Key business signals in search results
-                    signals = {
-                        "has_domain": any(f"{brand_lower}.{ext}" in html_lower for ext in ["com", "in", "co.in", "co"]),
-                        "has_zomato": "zomato" in html_lower,
-                        "has_swiggy": "swiggy" in html_lower,
-                        "has_justdial": "justdial" in html_lower,
-                        "has_maps": "google.com/maps" in html_lower or "maps.google" in html_lower,
-                        "has_menu": "menu" in html_lower and mentions >= 2,
-                        "has_outlet": any(x in html_lower for x in ["outlet", "branch", "location", "store"]) and mentions >= 2,
-                        "has_reviews": any(x in html_lower for x in ["review", "rating", "stars"]) and mentions >= 3,
-                        "has_order": any(x in html_lower for x in ["order online", "delivery", "order now"]) and mentions >= 2,
-                    }
+                    # STRONG signals - these indicate definite business presence
+                    # Must be near the brand name (within 500 chars)
+                    strong_signals_found = []
                     
-                    # Count strong signals
-                    strong_signals = sum([signals["has_domain"], signals["has_zomato"], signals["has_swiggy"], 
-                                         signals["has_justdial"], signals["has_maps"]])
-                    medium_signals = sum([signals["has_menu"], signals["has_outlet"], signals["has_reviews"], signals["has_order"]])
+                    # Check for brand-specific domain
+                    if any(f"{brand_lower}.{ext}" in html_lower for ext in ["com", "in", "co.in", "co"]):
+                        strong_signals_found.append("domain")
                     
-                    signal_list = [k.replace("has_", "") for k, v in signals.items() if v]
+                    # Check for platform presence NEAR brand mentions
+                    for match in re.finditer(brand_pattern, html_lower):
+                        context_start = max(0, match.start() - 300)
+                        context_end = min(len(html_lower), match.end() + 300)
+                        context = html_lower[context_start:context_end]
+                        
+                        if "zomato" in context and "zomato" not in strong_signals_found:
+                            strong_signals_found.append("zomato")
+                        if "swiggy" in context and "swiggy" not in strong_signals_found:
+                            strong_signals_found.append("swiggy")
+                        if "justdial" in context and "justdial" not in strong_signals_found:
+                            strong_signals_found.append("justdial")
+                        if ("google.com/maps" in context or "maps.google" in context) and "maps" not in strong_signals_found:
+                            strong_signals_found.append("maps")
                     
-                    print(f"🔎 WEB: '{brand_name}' mentions={mentions}, signals={signal_list}", flush=True)
-                    logging.warning(f"🔎 WEB: '{brand_name}' mentions={mentions}, signals={signal_list}")
+                    # MEDIUM signals - check for business indicators NEAR brand mentions
+                    medium_signals_found = []
+                    for match in re.finditer(brand_pattern, html_lower):
+                        context_start = max(0, match.start() - 200)
+                        context_end = min(len(html_lower), match.end() + 200)
+                        context = html_lower[context_start:context_end]
+                        
+                        if "menu" in context and "menu" not in medium_signals_found:
+                            medium_signals_found.append("menu")
+                        if any(x in context for x in ["outlet", "branch", "location"]) and "outlet" not in medium_signals_found:
+                            medium_signals_found.append("outlet")
+                        if any(x in context for x in ["review", "rating"]) and "reviews" not in medium_signals_found:
+                            medium_signals_found.append("reviews")
+                        if any(x in context for x in ["order online", "delivery"]) and "order" not in medium_signals_found:
+                            medium_signals_found.append("order")
+                        if any(x in context for x in ["franchise", "chain"]) and "franchise" not in medium_signals_found:
+                            medium_signals_found.append("franchise")
                     
-                    # DETECTION RULES (SIMPLE & EFFECTIVE):
-                    # Rule 1: Any platform presence (Zomato/Swiggy/JustDial/Maps) = DEFINITE business
-                    if strong_signals >= 1:
+                    all_signals = strong_signals_found + medium_signals_found
+                    
+                    print(f"🔎 WEB: '{brand_name}' mentions={mentions}, strong={strong_signals_found}, medium={medium_signals_found}", flush=True)
+                    logging.warning(f"🔎 WEB: '{brand_name}' mentions={mentions}, strong={strong_signals_found}, medium={medium_signals_found}")
+                    
+                    # DETECTION RULES:
+                    # Rule 1: Any platform presence = DEFINITE business
+                    if len(strong_signals_found) >= 1:
                         brand_found_online = True
                         web_confidence = "HIGH"
-                        web_evidence = [f"mentions:{mentions}"] + signal_list[:3]
+                        web_evidence = [f"mentions:{mentions}"] + all_signals[:3]
                         logging.warning(f"🌐 WEB CONFIRMED: '{brand_name}' found on business platform!")
                     
-                    # Rule 2: Multiple business signals + mentions = LIKELY business  
-                    elif medium_signals >= 2 and mentions >= 3:
+                    # Rule 2: Multiple medium signals NEAR brand + mentions = LIKELY business  
+                    elif len(medium_signals_found) >= 2 and mentions >= 2:
                         brand_found_online = True
                         web_confidence = "MEDIUM"
-                        web_evidence = [f"mentions:{mentions}"] + signal_list[:3]
-                        logging.warning(f"🌐 WEB LIKELY: '{brand_name}' has business indicators")
+                        web_evidence = [f"mentions:{mentions}"] + all_signals[:3]
+                        logging.warning(f"🌐 WEB LIKELY: '{brand_name}' has business indicators near brand mentions")
                     
-                    # Rule 3: High mentions alone = worth checking
-                    elif mentions >= 5:
+                    # Rule 3: High mentions alone = worth checking but LOW confidence
+                    elif mentions >= 8:
                         brand_found_online = True
                         web_confidence = "LOW"
                         web_evidence = [f"mentions:{mentions}"]
