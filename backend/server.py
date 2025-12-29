@@ -742,7 +742,8 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
     brand_found_online = False
     
     try:
-        search_query = f'"{brand_name}" {category} official site OR company OR brand'
+        # Search for the brand with category context
+        search_query = f'"{brand_name}" {category}'
         search_url = f"https://www.bing.com/search?q={search_query.replace(' ', '+')}"
         
         async with aiohttp.ClientSession() as session:
@@ -754,36 +755,49 @@ async def dynamic_brand_search(brand_name: str, category: str = "") -> dict:
                     html = await response.text()
                     html_lower = html.lower()
                     brand_lower = brand_name.lower().replace(" ", "")
+                    brand_with_space = brand_name.lower()
                     
-                    # Check for strong indicators the brand exists
-                    existence_signals = [
-                        f"{brand_lower}.com",
-                        f"{brand_lower}.in",
-                        f"@{brand_lower}",
-                        f"{brand_name.lower()} official",
-                        f"{brand_name.lower()} - home",
-                        f"about {brand_name.lower()}",
-                        f"{brand_name.lower()} franchise",
-                        f"{brand_name.lower()} stores",
-                        f"{brand_name.lower()} outlets",
-                        f"{brand_name.lower()} locations",
-                        f"{brand_name.lower()} menu",
-                        f"{brand_name.lower()} cafe",
-                        f"{brand_name.lower()} restaurant",
+                    # Count how many times the brand appears in search results
+                    brand_mentions = html_lower.count(brand_lower)
+                    
+                    # Strong indicators the brand is an established business
+                    business_indicators = [
+                        "official", "franchise", "stores", "outlets", "locations",
+                        "menu", "cafe", "restaurant", "chain", "reviews", "rating",
+                        "zomato", "swiggy", "google maps", "contact", "careers",
+                        "about us", "our story", "founded", "established"
                     ]
                     
-                    found_signals = []
-                    for signal in existence_signals:
-                        if signal in html_lower:
-                            found_signals.append(signal)
+                    found_indicators = []
+                    for indicator in business_indicators:
+                        # Check if indicator appears near the brand name
+                        if indicator in html_lower:
+                            found_indicators.append(indicator)
                     
-                    if len(found_signals) >= 2:
+                    # Also check for domain patterns
+                    domain_patterns = [f"{brand_lower}.com", f"{brand_lower}.in", f"{brand_lower}.co"]
+                    for pattern in domain_patterns:
+                        if pattern in html_lower:
+                            found_indicators.append(f"domain:{pattern}")
+                    
+                    print(f"🔎 WEB SEARCH: '{brand_name}' mentions={brand_mentions}, indicators={found_indicators[:5]}", flush=True)
+                    
+                    # If brand appears multiple times AND has business indicators
+                    if brand_mentions >= 3 and len(found_indicators) >= 2:
                         brand_found_online = True
-                        web_evidence = found_signals[:3]
-                        print(f"🌐 WEB SEARCH: Found '{brand_name}' online! Signals: {found_signals[:3]}", flush=True)
-                        logging.warning(f"🌐 WEB SEARCH: Found '{brand_name}' online! Signals: {found_signals[:3]}")
+                        web_evidence = [f"mentions:{brand_mentions}"] + found_indicators[:3]
+                        print(f"🌐 WEB FOUND: '{brand_name}' appears to be an existing business!", flush=True)
+                        logging.warning(f"🌐 WEB FOUND: '{brand_name}' exists! mentions={brand_mentions}, indicators={found_indicators[:3]}")
+                    elif brand_mentions >= 5:
+                        # High mention count alone is a strong signal
+                        brand_found_online = True
+                        web_evidence = [f"mentions:{brand_mentions}"]
+                        print(f"🌐 WEB FOUND: '{brand_name}' has high visibility ({brand_mentions} mentions)!", flush=True)
+                        logging.warning(f"🌐 WEB FOUND: '{brand_name}' high visibility: {brand_mentions} mentions")
+                        
     except Exception as e:
         logging.error(f"Web search failed for {brand_name}: {e}")
+        print(f"❌ Web search error: {e}", flush=True)
     
     # ========== STEP 2: LLM CHECK ==========
     # Use LLM to check for brand conflicts
