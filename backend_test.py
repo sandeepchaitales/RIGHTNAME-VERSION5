@@ -3569,6 +3569,30 @@ class BrandEvaluationTester:
             self.log_test("Enhanced Detection - Nexovix Exception", False, str(e))
             return False
 
+    def run_enhanced_brand_detection_tests(self):
+        """Run only the enhanced brand detection tests as requested in the review"""
+        print("🔍 ENHANCED BRAND DETECTION TESTS")
+        print("Testing the enhanced brand detection after fixing false positives")
+        print("=" * 80)
+        
+        # Test API health first
+        if not self.test_api_health():
+            print("❌ API health check failed, stopping tests")
+            return self.print_summary()
+        
+        print("\n" + "="*50)
+        print("🔍 ENHANCED BRAND DETECTION TESTS")
+        print("="*50)
+        
+        # Run the 5 specific test cases from the review request
+        self.test_enhanced_brand_detection_chai_duniya()
+        self.test_enhanced_brand_detection_chaibunk()
+        self.test_enhanced_brand_detection_zyphloria()
+        self.test_enhanced_brand_detection_nike()
+        self.test_enhanced_brand_detection_nexovix()
+        
+        return self.print_summary()
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Tests...")
