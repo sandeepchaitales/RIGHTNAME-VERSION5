@@ -1723,18 +1723,50 @@ const Dashboard = () => {
         try {
             const brandName = reportData?.brand_scores?.[0]?.brand_name || 'Report';
             const brand = reportData?.brand_scores?.[0];
+            const dims = brand?.dimensions || [];
             
-            // Create a temporary container for PDF with cover page
+            // Create a temporary container for PDF
             const pdfContainer = document.createElement('div');
             pdfContainer.style.position = 'absolute';
             pdfContainer.style.left = '-9999px';
             pdfContainer.style.top = '0';
-            pdfContainer.style.width = '210mm'; // A4 width
+            pdfContainer.style.width = '210mm';
             pdfContainer.style.background = 'white';
+            pdfContainer.style.fontFamily = 'system-ui, -apple-system, sans-serif';
             document.body.appendChild(pdfContainer);
             
-            // Create cover page HTML
-            const coverPageHtml = `
+            // Helper function for dimension cards
+            const getDimCards = () => {
+                return dims.map((dim, i) => {
+                    const icons = ['✨', '🌍', '💎', '📈', '⚖️', '🎯', '🔮', '🎨'];
+                    const score = dim.score || 0;
+                    const bgColor = score >= 8 ? '#d1fae5' : score >= 6 ? '#ede9fe' : '#fef3c7';
+                    const textColor = score >= 8 ? '#047857' : score >= 6 ? '#6d28d9' : '#b45309';
+                    return `
+                        <div style="break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                            <div style="background: ${bgColor}; padding: 16px; border-bottom: 1px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 20px;">${icons[i % icons.length]}</span>
+                                        <span style="font-weight: 700; color: #1e293b;">${dim.name || 'Dimension ' + (i+1)}</span>
+                                    </div>
+                                    <span style="background: linear-gradient(to right, ${textColor}, ${textColor}); color: white; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 14px;">${score}/10</span>
+                                </div>
+                            </div>
+                            <div style="padding: 16px;">
+                                <div style="height: 8px; background: #f1f5f9; border-radius: 9999px; overflow: hidden; margin-bottom: 16px;">
+                                    <div style="height: 100%; width: ${score * 10}%; background: ${textColor}; border-radius: 9999px;"></div>
+                                </div>
+                                <p style="font-size: 13px; color: #475569; line-height: 1.6;">${dim.reasoning || 'No detailed analysis available.'}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            };
+            
+            // Build complete PDF HTML
+            const pdfHtml = `
+                <!-- PAGE 1: COVER PAGE -->
                 <div style="min-height: 297mm; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: white; page-break-after: always;">
                     <img src="${LOGO_URL}" alt="RIGHTNAME" style="height: 80px; margin-bottom: 24px;" crossorigin="anonymous" />
                     <h1 style="font-size: 48px; font-weight: 900; color: #0f172a; margin-bottom: 16px; text-align: center;">${brand?.brand_name || brandName}</h1>
@@ -1757,7 +1789,7 @@ const Dashboard = () => {
                         <div style="background: #1e293b; padding: 12px; text-align: center;">
                             <h3 style="font-size: 12px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Evaluation Request Summary</h3>
                         </div>
-                        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                        <table style="width: 100%; font-size: 14px; border-collapse: collapse; background: white;">
                             <tr style="border-bottom: 1px solid #f1f5f9;">
                                 <td style="padding: 12px 16px; color: #64748b;">Brand Name</td>
                                 <td style="padding: 12px 16px; color: #0f172a; font-weight: 700; text-align: right;">${brand?.brand_name || brandName}</td>
@@ -1785,29 +1817,114 @@ const Dashboard = () => {
                         <p style="font-size: 10px; color: #94a3b8;">https://rightname.ai</p>
                     </div>
                 </div>
+                
+                <!-- PAGE 2: EXECUTIVE SUMMARY -->
+                <div style="padding: 20px; background: white;">
+                    <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <span style="font-size: 16px;">⭐</span>
+                            <span style="font-size: 12px; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 0.1em;">Executive Summary</span>
+                        </div>
+                        <p style="color: #334155; line-height: 1.7; font-size: 14px;">${data?.executive_summary || 'No executive summary available.'}</p>
+                    </div>
+                    
+                    ${brand?.pros && brand?.cons ? `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px;">
+                            <h4 style="color: #166534; font-weight: 700; margin-bottom: 12px;">✅ Strengths</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: #166534;">
+                                ${(brand.pros || []).map(p => `<li style="margin-bottom: 8px; font-size: 13px;">${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div style="background: #fef2f2; border-radius: 12px; padding: 20px;">
+                            <h4 style="color: #991b1b; font-weight: 700; margin-bottom: 12px;">⚠️ Risks</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: #991b1b;">
+                                ${(brand.cons || []).map(c => `<li style="margin-bottom: 8px; font-size: 13px;">${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <!-- PAGE 3: WHAT'S IN THE NAME + DETAILED FRAMEWORK ANALYSIS -->
+                <div style="page-break-before: always; padding: 20px; background: white;">
+                    <!-- Banner -->
+                    <div style="background: linear-gradient(to right, #7c3aed, #d946ef, #f97316); border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 32px; font-weight: 900; color: white; margin: 0;">What's in the Name?</h2>
+                        <p style="color: rgba(255,255,255,0.8); margin-top: 8px; font-size: 16px;">Deep dive into your brand's DNA</p>
+                    </div>
+                    
+                    <!-- Performance Radar Placeholder (Since SVG doesn't render well) -->
+                    ${dims.length > 0 ? `
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f5d0fe; display: flex; align-items: center; justify-content: center;">🎯</div>
+                            <div>
+                                <h3 style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;">Performance Overview</h3>
+                                <p style="font-size: 12px; color: #64748b; margin: 0;">Dimension scores at a glance</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                            ${dims.map((dim, i) => {
+                                const score = dim.score || 0;
+                                const bgColor = score >= 8 ? '#d1fae5' : score >= 6 ? '#ede9fe' : '#fef3c7';
+                                const textColor = score >= 8 ? '#047857' : score >= 6 ? '#6d28d9' : '#b45309';
+                                return `
+                                    <div style="background: ${bgColor}; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <div style="font-size: 24px; font-weight: 900; color: ${textColor};">${score}</div>
+                                        <div style="font-size: 10px; color: ${textColor}; font-weight: 600;">${(dim.name || '').substring(0, 20)}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Detailed Framework Analysis Header -->
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <div style="width: 40px; height: 40px; border-radius: 12px; background: #f5d0fe; display: flex; align-items: center; justify-content: center;">📊</div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0;">Detailed Framework Analysis</h3>
+                            <p style="font-size: 13px; color: #64748b; margin: 0;">In-depth scoring breakdown</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Dimension Cards -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        ${getDimCards()}
+                    </div>
+                </div>
             `;
             
-            // Clone the report content
-            const reportContent = reportRef.current.cloneNode(true);
+            pdfContainer.innerHTML = pdfHtml;
             
-            // Remove no-print elements
-            reportContent.querySelectorAll('.no-print').forEach(el => el.remove());
+            // Also append remaining sections from the report
+            const remainingSections = reportRef.current.cloneNode(true);
+            remainingSections.querySelectorAll('.no-print').forEach(el => el.remove());
             
-            // Add page break classes to sections
-            reportContent.querySelectorAll('.pdf-page-break').forEach(el => {
-                el.style.pageBreakBefore = 'always';
+            // Find and add Digital Presence and other sections
+            const digitalPresence = remainingSections.querySelector('[class*="Digital"]')?.closest('section');
+            const marketIntel = remainingSections.querySelector('[class*="Market"]')?.closest('section');
+            const competitive = remainingSections.querySelector('[class*="Competitive"]')?.closest('section');
+            const legal = remainingSections.querySelector('[class*="Legal"]')?.closest('section');
+            const trademark = remainingSections.querySelector('[class*="Trademark"]')?.closest('section');
+            
+            // Append remaining sections with page breaks
+            [digitalPresence, marketIntel, competitive, legal, trademark].forEach(section => {
+                if (section) {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.pageBreakBefore = 'always';
+                    wrapper.appendChild(section.cloneNode(true));
+                    pdfContainer.appendChild(wrapper);
+                }
             });
-            
-            // Combine cover page and report content
-            pdfContainer.innerHTML = coverPageHtml;
-            pdfContainer.appendChild(reportContent);
             
             const opt = {
                 margin: [10, 10, 15, 10],
                 filename: `RIGHTNAME_${brandName}_Report.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
+                image: { type: 'jpeg', quality: 0.92 },
                 html2canvas: { 
-                    scale: 2,
+                    scale: 1.5,
                     useCORS: true,
                     logging: false,
                     letterRendering: true,
@@ -1820,9 +1937,7 @@ const Dashboard = () => {
                 },
                 pagebreak: { 
                     mode: ['css', 'legacy'],
-                    before: '.pdf-page-break',
-                    after: '.pdf-cover-page',
-                    avoid: ['.pdf-no-break', 'tr', 'td']
+                    avoid: ['tr', 'td', '.pdf-no-break']
                 }
             };
             
@@ -1833,7 +1948,6 @@ const Dashboard = () => {
             
         } catch (error) {
             console.error('PDF generation failed:', error);
-            // Fallback to print
             window.print();
         } finally {
             setDownloading(false);
