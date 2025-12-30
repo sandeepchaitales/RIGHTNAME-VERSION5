@@ -1876,7 +1876,7 @@ const Dashboard = () => {
                     .print-card { break-inside: avoid !important; page-break-inside: avoid !important; margin-bottom: 8px; }
                     .no-print { display: none !important; }
                     /* Force new page for each major section (except pages 1 & 2) */
-                    .print-new-page { page-break-before: always !important; break-before: page !important; }
+                    .pdf-page-break print-new-page { page-break-before: always !important; break-before: page !important; }
                     .pdf-page-break { page-break-before: always !important; break-before: page !important; }
                     .pdf-no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
                     .print-section { break-inside: avoid !important; }
@@ -2022,7 +2022,7 @@ const Dashboard = () => {
 
                 {/* "WHAT'S IN THE NAME?" BANNER - New Page (Page 3) */}
                 {brand.dimensions && (
-                    <section className="print-new-page">
+                    <section className="pdf-page-break print-new-page">
                         <div className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-500 rounded-2xl p-8 text-center mb-6">
                             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
                                 What's in the Name?
@@ -2050,7 +2050,7 @@ const Dashboard = () => {
 
                 {/* SECTION 6: DIGITAL PRESENCE - New Page */}
                 {(brand.multi_domain_availability || brand.social_availability) && (
-                    <section className="print-section print-new-page">
+                    <section className="print-section pdf-page-break print-new-page">
                         <SectionHeader icon={Globe} title="Digital Presence Check" subtitle="Domain & social availability" color="cyan" badge={`${brand.multi_domain_availability?.category_domains?.filter(d => d.available).length || 0}/${brand.multi_domain_availability?.category_domains?.length || 0} Available`} />
                         {isAuthenticated ? (
                             <DigitalPresenceSection 
@@ -2066,7 +2066,7 @@ const Dashboard = () => {
 
                 {/* SECTION 7: MARKET INTELLIGENCE - New Page */}
                 {(brand.domain_analysis || brand.visibility_analysis || brand.cultural_analysis) && (
-                    <section className="print-section print-new-page">
+                    <section className="print-section pdf-page-break print-new-page">
                         <SectionHeader icon={TrendingUp} title="Market Intelligence" subtitle="Domain status, conflicts & cultural fit" color="amber" />
                         {isAuthenticated ? (
                             <MarketIntelligenceSection 
@@ -2082,7 +2082,7 @@ const Dashboard = () => {
 
                 {/* SECTION 8: COMPETITIVE LANDSCAPE - New Page */}
                 {(brand.competitor_analysis || brand.country_competitor_analysis?.length > 0) && (
-                    <section className="print-section print-new-page">
+                    <section className="print-section pdf-page-break print-new-page">
                         <SectionHeader icon={Users} title="Competitive Landscape" subtitle="Strategic positioning matrix by market" color="blue" />
                         {isAuthenticated ? (
                             <CompetitiveLandscapeSection 
@@ -2097,7 +2097,7 @@ const Dashboard = () => {
 
                 {/* SECTION 9: LEGAL RISK MATRIX - New Page */}
                 {brand.trademark_matrix && (
-                    <section className="print-section print-new-page">
+                    <section className="print-section pdf-page-break print-new-page">
                         <SectionHeader icon={Scale} title="Legal Risk Matrix" subtitle="IP Analysis & Trademark Assessment" color="red" />
                         {isAuthenticated ? (
                             <LegalRiskMatrix trademarkMatrix={brand.trademark_matrix} trademarkClasses={brand.trademark_classes} />
@@ -2109,7 +2109,7 @@ const Dashboard = () => {
 
                 {/* SECTION 10: TRADEMARK RESEARCH - New Page */}
                 {brand.trademark_research && (
-                    <section className="print-section print-new-page">
+                    <section className="print-section pdf-page-break print-new-page">
                         <SectionHeader icon={Shield} title="Trademark Research Intelligence" subtitle="Real-Time Conflict Discovery & Risk Analysis" color="violet" badge="NEW" />
                         {isAuthenticated ? (
                             <TrademarkResearchSection 
