@@ -1719,13 +1719,16 @@ const Dashboard = () => {
         setDownloading(true);
         
         try {
-            // Simply trigger browser print which works reliably
+            // Add slight delay to ensure DOM is ready
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Trigger browser print dialog - user can "Save as PDF"
             window.print();
         } catch (error) {
             console.error('Print failed:', error);
             alert('Please use Ctrl+P (or Cmd+P on Mac) to print/save as PDF');
         } finally {
-            setDownloading(false);
+            setTimeout(() => setDownloading(false), 1000);
         }
     };
 
