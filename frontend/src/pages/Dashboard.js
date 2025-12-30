@@ -1721,28 +1721,116 @@ const Dashboard = () => {
         setDownloading(true);
         
         try {
-            const element = reportRef.current;
             const brandName = reportData?.brand_scores?.[0]?.brand_name || 'Report';
+            const brand = reportData?.brand_scores?.[0];
+            
+            // Create a temporary container for PDF with cover page
+            const pdfContainer = document.createElement('div');
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            pdfContainer.style.top = '0';
+            pdfContainer.style.width = '210mm'; // A4 width
+            pdfContainer.style.background = 'white';
+            document.body.appendChild(pdfContainer);
+            
+            // Create cover page HTML
+            const coverPageHtml = `
+                <div style="min-height: 297mm; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: white; page-break-after: always;">
+                    <img src="${LOGO_URL}" alt="RIGHTNAME" style="height: 80px; margin-bottom: 24px;" crossorigin="anonymous" />
+                    <h1 style="font-size: 48px; font-weight: 900; color: #0f172a; margin-bottom: 16px; text-align: center;">${brand?.brand_name || brandName}</h1>
+                    <div style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; border-radius: 9999px; font-size: 24px; font-weight: 900; margin-bottom: 24px; ${
+                        brand?.verdict === 'GO' ? 'background: #d1fae5; color: #047857;' :
+                        brand?.verdict === 'CONDITIONAL GO' ? 'background: #fef3c7; color: #b45309;' :
+                        'background: #fee2e2; color: #b91c1c;'
+                    }">
+                        ${brand?.namescore}/100 • ${brand?.verdict}
+                    </div>
+                    <div style="color: #475569; text-align: center; margin-bottom: 16px;">
+                        <p style="font-size: 18px; font-weight: 600;">${queryData?.category || ''} • ${queryData?.countries?.join(', ') || ''}</p>
+                        <p style="color: #64748b; margin-top: 8px;">${currentDate}</p>
+                    </div>
+                    <div style="width: 160px; height: 4px; background: linear-gradient(to right, #8b5cf6, #d946ef, #f97316); border-radius: 9999px; margin: 24px auto;"></div>
+                    <p style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.3em; font-weight: 600;">Brand Name Analysis Report</p>
+                    <p style="font-size: 10px; color: #94a3b8; margin-top: 8px;">Report ID: ${reportData?.report_id || ''}</p>
+                    
+                    <div style="width: 100%; max-width: 400px; margin-top: 40px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                        <div style="background: #1e293b; padding: 12px; text-align: center;">
+                            <h3 style="font-size: 12px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Evaluation Request Summary</h3>
+                        </div>
+                        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px 16px; color: #64748b;">Brand Name</td>
+                                <td style="padding: 12px 16px; color: #0f172a; font-weight: 700; text-align: right;">${brand?.brand_name || brandName}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px 16px; color: #64748b;">Industry</td>
+                                <td style="padding: 12px 16px; color: #0f172a; font-weight: 600; text-align: right;">${queryData?.industry || 'N/A'}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px 16px; color: #64748b;">Category</td>
+                                <td style="padding: 12px 16px; color: #0f172a; font-weight: 600; text-align: right;">${queryData?.category || 'N/A'}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px 16px; color: #64748b;">Positioning</td>
+                                <td style="padding: 12px 16px; color: #0f172a; font-weight: 600; text-align: right;">${queryData?.positioning || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; color: #64748b;">Countries</td>
+                                <td style="padding: 12px 16px; color: #0f172a; font-weight: 600; text-align: right;">${queryData?.countries?.join(', ') || 'N/A'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-top: auto; padding-top: 40px; text-align: center;">
+                        <p style="font-size: 10px; color: #94a3b8;">https://rightname.ai</p>
+                    </div>
+                </div>
+            `;
+            
+            // Clone the report content
+            const reportContent = reportRef.current.cloneNode(true);
+            
+            // Remove no-print elements
+            reportContent.querySelectorAll('.no-print').forEach(el => el.remove());
+            
+            // Add page break classes to sections
+            reportContent.querySelectorAll('.pdf-page-break').forEach(el => {
+                el.style.pageBreakBefore = 'always';
+            });
+            
+            // Combine cover page and report content
+            pdfContainer.innerHTML = coverPageHtml;
+            pdfContainer.appendChild(reportContent);
             
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: [10, 10, 15, 10],
                 filename: `RIGHTNAME_${brandName}_Report.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+                image: { type: 'jpeg', quality: 0.95 },
                 html2canvas: { 
                     scale: 2,
                     useCORS: true,
                     logging: false,
-                    letterRendering: true
+                    letterRendering: true,
+                    allowTaint: true
                 },
                 jsPDF: { 
                     unit: 'mm', 
                     format: 'a4', 
                     orientation: 'portrait' 
                 },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { 
+                    mode: ['css', 'legacy'],
+                    before: '.pdf-page-break',
+                    after: '.pdf-cover-page',
+                    avoid: ['.pdf-no-break', 'tr', 'td']
+                }
             };
             
-            await html2pdf().set(opt).from(element).save();
+            await html2pdf().set(opt).from(pdfContainer).save();
+            
+            // Clean up
+            document.body.removeChild(pdfContainer);
+            
         } catch (error) {
             console.error('PDF generation failed:', error);
             // Fallback to print
