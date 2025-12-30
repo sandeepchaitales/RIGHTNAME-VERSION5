@@ -78,77 +78,93 @@ const SubSectionHeader = ({ icon: Icon, title, color = "slate" }) => (
 // ============ COVER PAGE ============
 const CoverPage = ({ brandName, score, verdict, date, query, reportId }) => {
     return (
-        <div className="hidden print:flex print:flex-col print:min-h-screen print:items-center print:justify-center print:bg-white print:p-12">
-            <div className="text-center">
-                <img src={LOGO_URL} alt="RIGHTNAME" className="h-16 mx-auto mb-8" />
-                <h1 className="text-6xl font-black text-slate-900 mb-4">{brandName}</h1>
-                <div className="inline-flex items-center gap-4 mb-8">
-                    <div className={`px-6 py-3 rounded-full text-2xl font-black ${
-                        verdict === 'GO' ? 'bg-emerald-100 text-emerald-700' :
-                        verdict === 'CONDITIONAL GO' ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-700'
-                    }`}>
-                        {score}/100 • {verdict}
-                    </div>
-                </div>
-                <div className="text-slate-500 space-y-2">
-                    <p className="text-lg">
-                        {query?.category} • {formatCountriesWithFlags(query?.countries)}
-                    </p>
-                    <p className="flex items-center justify-center gap-2">
-                        <Calendar className="w-4 h-4" />{date}
-                    </p>
-                </div>
-                <div className="w-32 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 mx-auto my-8 rounded-full"></div>
-                <p className="text-sm text-slate-400 uppercase tracking-widest">Brand Name Analysis Report</p>
-                {reportId && <p className="text-xs text-slate-300 mt-2">Report ID: {reportId}</p>}
+        <div className="hidden print:flex print:flex-col print:min-h-screen print:items-center print:justify-center print:bg-white print:p-8">
+            {/* Logo - Decent Size */}
+            <div className="mb-6">
+                <img src={LOGO_URL} alt="RIGHTNAME" className="h-20 mx-auto" />
             </div>
             
+            {/* Brand Name - Large and Bold */}
+            <h1 className="text-6xl font-black text-slate-900 mb-4 text-center">{brandName}</h1>
+            
+            {/* Score Badge */}
+            <div className="mb-6">
+                <div className={`inline-flex items-center gap-3 px-8 py-4 rounded-full text-2xl font-black ${
+                    verdict === 'GO' ? 'bg-emerald-100 text-emerald-700' :
+                    verdict === 'CONDITIONAL GO' ? 'bg-amber-100 text-amber-700' :
+                    'bg-red-100 text-red-700'
+                }`}>
+                    {score}/100 • {verdict}
+                </div>
+            </div>
+            
+            {/* Industry & Countries */}
+            <div className="text-slate-600 space-y-2 text-center mb-4">
+                <p className="text-lg font-semibold">
+                    {query?.category} • {formatCountriesWithFlags(query?.countries)}
+                </p>
+                <p className="flex items-center justify-center gap-2 text-slate-500">
+                    <Calendar className="w-4 h-4" />{date}
+                </p>
+            </div>
+            
+            {/* Gradient Line */}
+            <div className="w-40 h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-orange-500 mx-auto my-6 rounded-full"></div>
+            
+            {/* Report Title */}
+            <p className="text-sm text-slate-500 uppercase tracking-[0.3em] font-semibold mb-2">Brand Name Analysis Report</p>
+            {reportId && <p className="text-xs text-slate-400 mb-8">Report ID: {reportId}</p>}
+            
             {/* Input Summary Table on Cover Page */}
-            <div className="mt-12 w-full max-w-md">
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                    <div className="bg-slate-100 px-4 py-2 text-center">
-                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Evaluation Request Summary</h3>
+            <div className="w-full max-w-lg mt-4">
+                <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-slate-800 px-4 py-3 text-center">
+                        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Evaluation Request Summary</h3>
                     </div>
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm bg-white">
                         <tbody>
                             <tr className="border-b border-slate-100">
-                                <td className="px-4 py-2 text-slate-500 font-medium">Brand Name</td>
-                                <td className="px-4 py-2 text-slate-900 font-bold text-right">{brandName}</td>
+                                <td className="px-4 py-3 text-slate-500 font-medium">Brand Name</td>
+                                <td className="px-4 py-3 text-slate-900 font-bold text-right">{brandName}</td>
                             </tr>
                             {query?.industry && (
                                 <tr className="border-b border-slate-100">
-                                    <td className="px-4 py-2 text-slate-500 font-medium">Industry</td>
-                                    <td className="px-4 py-2 text-slate-900 font-semibold text-right">{query.industry}</td>
+                                    <td className="px-4 py-3 text-slate-500 font-medium">Industry</td>
+                                    <td className="px-4 py-3 text-slate-900 font-semibold text-right">{query.industry}</td>
                                 </tr>
                             )}
                             <tr className="border-b border-slate-100">
-                                <td className="px-4 py-2 text-slate-500 font-medium">Category</td>
-                                <td className="px-4 py-2 text-slate-900 font-semibold text-right">{query?.category || 'N/A'}</td>
+                                <td className="px-4 py-3 text-slate-500 font-medium">Category</td>
+                                <td className="px-4 py-3 text-slate-900 font-semibold text-right">{query?.category || 'N/A'}</td>
                             </tr>
                             {query?.product_type && (
                                 <tr className="border-b border-slate-100">
-                                    <td className="px-4 py-2 text-slate-500 font-medium">Product Type</td>
-                                    <td className="px-4 py-2 text-slate-900 font-semibold text-right">{query.product_type}</td>
+                                    <td className="px-4 py-3 text-slate-500 font-medium">Product Type</td>
+                                    <td className="px-4 py-3 text-slate-900 font-semibold text-right">{query.product_type}</td>
                                 </tr>
                             )}
                             <tr className="border-b border-slate-100">
-                                <td className="px-4 py-2 text-slate-500 font-medium">Positioning</td>
-                                <td className="px-4 py-2 text-slate-900 font-semibold text-right">{query?.positioning || 'N/A'}</td>
+                                <td className="px-4 py-3 text-slate-500 font-medium">Positioning</td>
+                                <td className="px-4 py-3 text-slate-900 font-semibold text-right">{query?.positioning || 'N/A'}</td>
                             </tr>
                             <tr className="border-b border-slate-100">
-                                <td className="px-4 py-2 text-slate-500 font-medium">Market Scope</td>
-                                <td className="px-4 py-2 text-slate-900 font-semibold text-right">{query?.market_scope || 'N/A'}</td>
+                                <td className="px-4 py-3 text-slate-500 font-medium">Market Scope</td>
+                                <td className="px-4 py-3 text-slate-900 font-semibold text-right">{query?.market_scope || 'N/A'}</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-2 text-slate-500 font-medium">Target Countries</td>
-                                <td className="px-4 py-2 text-slate-900 font-semibold text-right">
+                                <td className="px-4 py-3 text-slate-500 font-medium">Target Countries</td>
+                                <td className="px-4 py-3 text-slate-900 font-semibold text-right">
                                     {formatCountriesWithFlags(query?.countries)}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="absolute bottom-8 left-0 right-0 text-center">
+                <p className="text-xs text-slate-400">https://rightname.ai</p>
             </div>
         </div>
     );
